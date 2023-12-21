@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "594130597936",
+    "project_id": "danielsoutherncet343assignment",
+    "storage_bucket": "danielsoutherncet343assignment.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:594130597936:android:739e2c9ee0c17b664255f5",
+        "android_client_info": {
+          "package_name": "daniel.southern.danielsouthern_cet343assignment"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYDN-ZfM-IlHOa4TBvCayAhB0n4lQ7gs8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
