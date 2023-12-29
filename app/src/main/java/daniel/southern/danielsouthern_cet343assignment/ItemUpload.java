@@ -5,15 +5,18 @@ public class ItemUpload {
     private String itemTitle;
     private String itemDesc;
     private String itemLink;
+    private boolean itemBought;
 
     public ItemUpload(){
         //empty constructor needed
     }
 
-    public ItemUpload(String itemTitle, String itemDesc, String itemLink){
+    public ItemUpload(String itemTitle, String itemDesc, String itemLink, boolean itemBought){
         this.itemTitle = itemTitle;
         this.itemDesc = itemDesc;
         this.itemLink = itemLink;
+        //set item bought to false when a new item is created
+        this.itemBought = itemBought;
     }
 
     public String getItemTitle() {
@@ -26,5 +29,9 @@ public class ItemUpload {
 
     public String getItemLink() {
         return itemLink;
+    }
+
+    public Boolean getItemBought() {
+        return itemBought;
     }
 }

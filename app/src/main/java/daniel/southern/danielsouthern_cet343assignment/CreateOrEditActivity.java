@@ -1,8 +1,10 @@
 package daniel.southern.danielsouthern_cet343assignment;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -35,7 +37,6 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_or_edit);
-        //TODO: Look into passing the 'mAuth' object to this activity via intent to save instantiating
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
@@ -76,8 +77,28 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
     }
 
     private void cancelActionClicked() {
-        //TODO: Add requirement for confirmation then Clear all text and return to main
-        Toast.makeText(this, "Cancel Button Clicked", Toast.LENGTH_SHORT).show();
+        //AlertDialog to request confirmation from user before discarding changes made on this activity
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Cancel Changes")
+                .setMessage("Are you sure you wish to cancel? All changes will be discarded.")
+                .setPositiveButton("Discard Changes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //return user to main activity
+                        Intent intent = new Intent(CreateOrEditActivity.this, MainActivity.class);
+                        startActivity(intent);
+                   }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //do nothing as user wants to continue on this activity
+                    }
+                });
+
+        AlertDialog ad = builder.create();
+        ad.show();
+
     }
 
     private void saveItemClicked() {
@@ -94,6 +115,8 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
         itemUpload.put("itemDesc", desc);
         itemUpload.put("itemLink", link);
         itemUpload.put("email", currentUser.getEmail());
+        //set item bought to false when created
+        itemUpload.put("itemBought", false);
 
         //add a new document with generated ID
         database.collection("itemUploads")

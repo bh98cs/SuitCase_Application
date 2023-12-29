@@ -25,7 +25,7 @@ import com.google.firebase.firestore.Query;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
-    //TODO: Connect to firestore and load items into recycler view.
+    //TODO: Add red background to cardview when swiping to delete and add different colour when editing
     public static final String TAG = "MainActivity";
     private myAdapter mAdapter;
     private FirebaseFirestore database = FirebaseFirestore.getInstance();
@@ -138,6 +138,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 String id = documentSnapshot.getId();
                 Toast.makeText(MainActivity.this,
                         "Position: " + position + " ID: " + id, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        mAdapter.setOnItemLongClickListener(new myAdapter.OnItemLongClickListener(){
+            @Override
+            public void onItemLongClick(DocumentSnapshot documentSnapshot, int position) {
+                ItemUpload itemUpload = documentSnapshot.toObject(ItemUpload.class);
+                String id = documentSnapshot.getId();
+                Toast.makeText(MainActivity.this,
+                        "Long click", Toast.LENGTH_SHORT).show();
+                if(itemUpload != null){
+                    mAdapter.changeIsBought(itemUpload.getItemBought(), position);
+                }
+                else{
+                    //user feedback incase itemUpload is null which means no item was clicked
+                    Toast.makeText(MainActivity.this, "Please click an item to mark as bought.", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
