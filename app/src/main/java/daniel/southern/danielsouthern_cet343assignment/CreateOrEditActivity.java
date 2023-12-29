@@ -1,14 +1,121 @@
 package daniel.southern.danielsouthern_cet343assignment;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
-public class CreateOrEditActivity extends AppCompatActivity {
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class CreateOrEditActivity extends AppCompatActivity implements View.OnClickListener {
+
+    EditText productTitle;
+    EditText productDesc;
+    EditText productLink;
+    Button saveItem;
+    Button cancelAction;
+    private FirebaseAuth mAuth;
+    private FirebaseUser currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_or_edit);
+        //TODO: Look into passing the 'mAuth' object to this activity via intent to save instantiating
+
+        // Initialize Firebase Auth
+        mAuth = FirebaseAuth.getInstance();
+
+        //retrieve current user to check if they're already logged in
+        currentUser = mAuth.getCurrentUser();
+        //check user is logged in before proceeding
+        updateUI(currentUser);
+
+        //instantiate views
+        productTitle = findViewById(R.id.editText_productTitle);
+        productDesc = findViewById(R.id.editText_productDesc);
+        productLink = findViewById(R.id.editText_productLink);
+
+        saveItem = findViewById(R.id.button_save);
+        saveItem.setOnClickListener(this);
+
+        cancelAction = findViewById(R.id.button_cancelAction);
+        cancelAction.setOnClickListener(this);
+    }
+
+    private void updateUI(FirebaseUser currentUser) {
+        //send user to login page if not already logged in
+        if(currentUser == null){
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        //check which button has been clicked and call relative method
+        if(v.getId() == R.id.button_save){
+            saveItemClicked();
+        } else if (v.getId() == R.id.button_cancelAction) {
+            cancelActionClicked();
+        }
+    }
+
+    private void cancelActionClicked() {
+        //TODO: Add requirement for confirmation then Clear all text and return to main
+        Toast.makeText(this, "Cancel Button Clicked", Toast.LENGTH_SHORT).show();
+    }
+
+    private void saveItemClicked() {
+        String title = productTitle.getText().toString().trim();
+        String desc = productDesc.getText().toString().trim();
+        String link = productLink.getText().toString().trim();
+
+        //get reference to database
+        FirebaseFirestore database = FirebaseFirestore.getInstance();
+
+        //create new ItemUpload
+        Map<String, Object> itemUpload = new HashMap<>();
+        itemUpload.put("itemTitle", title);
+        itemUpload.put("itemDesc", desc);
+        itemUpload.put("itemLink", link);
+        itemUpload.put("email", currentUser.getEmail());
+
+        //add a new document with generated ID
+        database.collection("itemUploads")
+                .add(itemUpload)
+                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                    @Override
+                    public void onSuccess(DocumentReference documentReference) {
+                        Log.d("FSLog", "DocumentSnapshot added with ID: " + documentReference.getId());
+                        //user feedback to confirm new item has been added
+                        Toast.makeText(CreateOrEditActivity.this, "New Item added!", Toast.LENGTH_LONG).show();
+                        //return back to main activity to view all Items
+                        Intent intent = new Intent(CreateOrEditActivity.this, MainActivity.class);
+                        startActivity(intent);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w("FSLog", "Error adding document", e);
+                        //user feedback to advise was unable to save new item
+                        Toast.makeText(CreateOrEditActivity.this, "Something went wrong", Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 }

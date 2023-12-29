@@ -4,56 +4,88 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
+import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.SetOptions;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class myAdapter extends RecyclerView.Adapter<myAdapter.TextViewHolder> {
-    private Context mContext;
-    private List<ItemUpload> mItemUploads;
+public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.ItemUploadHolder> {
 
-    //constructor for class
-    public myAdapter(Context context, List<ItemUpload> itemUploads){
-        mContext = context;
-        mItemUploads = itemUploads;
-    }
+    private OnItemClickListener listener;
+    public static final String KEY_DESCRIPTION = "desc";
+
+    public myAdapter(@NonNull FirestoreRecyclerOptions<ItemUpload> options){ super(options);}
 
     @NonNull
     @Override
-    public TextViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(mContext).inflate(R.layout.data_item, parent, false);
-        return new TextViewHolder(v);
+    public ItemUploadHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.data_item, parent, false);
+        return new ItemUploadHolder(v);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull TextViewHolder holder, int position) {
-        //TODO: Add code to handle item image
-        ItemUpload uploadCurrent = mItemUploads.get(position);
-        holder.itemTitle.setText(uploadCurrent.getItemTitle());
-        holder.itemDesc.setText(uploadCurrent.getItemDesc());
-        holder.itemLink.setText(uploadCurrent.getItemLink());
+    protected void onBindViewHolder(@NonNull ItemUploadHolder holder, int position, @NonNull ItemUpload model) {
+        holder.textViewTitle.setText(model.getItemTitle());
+        holder.textViewDesc.setText(model.getItemDesc());
+        holder.textViewLink.setText(model.getItemLink());
     }
 
-    @Override
-    public int getItemCount() {
-        return 0;
+    public void deleteItem(int position){
+        //reference to firestore document
+        getSnapshots().getSnapshot(position).getReference().delete();
     }
 
-    public class TextViewHolder extends RecyclerView.ViewHolder{
+    public void updateItem(int position){
+        //TODO: Look into this method and allow for user to update all fields
+        String desc = "changed description";
+        Map<String, Object> itemUpload = new HashMap<>();
+        itemUpload.put(KEY_DESCRIPTION, desc);
+        getSnapshots().getSnapshot(position).getReference().set(itemUpload, SetOptions.merge());
+    }
 
-        //TODO: Add code to handle item image
-        public TextView itemTitle;
-        public TextView itemDesc;
-        public TextView itemLink;
+    public interface OnItemClickListener{
+        void onItemClick(DocumentSnapshot documentSnapshot,  int position);
+    }
 
-        public TextViewHolder(@NonNull View itemView) {
+    public void setOnItemClickListener(OnItemClickListener listener){
+        this.listener = listener;
+    }
+
+
+    class ItemUploadHolder extends RecyclerView.ViewHolder{
+        TextView textViewTitle;
+        TextView textViewDesc;
+        TextView textViewLink;
+
+        public ItemUploadHolder(@NonNull View itemView) {
             super(itemView);
-            itemTitle = itemView.findViewById(R.id.text_view_itemTitle);
-            itemDesc = itemView.findViewById(R.id.text_view_itemDesc);
-            itemLink = itemView.findViewById(R.id.text_view_itemLink);
+            textViewTitle = itemView.findViewById(R.id.text_view_itemTitle);
+            textViewDesc = itemView.findViewById(R.id.text_view_itemDesc);
+            textViewLink = itemView.findViewById(R.id.text_view_itemLink);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int position = getAdapterPosition();
+                    //validation
+                    if(position != RecyclerView.NO_POSITION && listener != null){
+                        listener.onItemClick(getSnapshots().getSnapshot(position), position);
+                    }
+                }
+            });
+
         }
+
     }
+
 }

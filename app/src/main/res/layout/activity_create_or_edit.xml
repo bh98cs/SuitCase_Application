@@ -7,7 +7,7 @@
     tools:context=".CreateOrEditActivity">
 
     <Button
-        android:id="@+id/button_Cancel"
+        android:id="@+id/button_cancelAction"
         android:layout_width="108dp"
         android:layout_height="64dp"
         android:layout_marginTop="60dp"
@@ -17,7 +17,7 @@
         app:layout_constraintTop_toBottomOf="@+id/editText_productLink" />
 
     <ImageView
-        android:id="@+id/imageView"
+        android:id="@+id/imageView_productImage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="120dp"
@@ -38,10 +38,10 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.338"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView" />
+        app:layout_constraintTop_toBottomOf="@+id/imageView_productImage" />
 
     <EditText
-        android:id="@+id/editText_Description"
+        android:id="@+id/editText_productDesc"
         android:layout_width="wrap_content"
         android:layout_height="48dp"
         android:layout_marginTop="32dp"
@@ -65,15 +65,15 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.338"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editText_Description" />
+        app:layout_constraintTop_toBottomOf="@+id/editText_productDesc" />
 
     <Button
-        android:id="@+id/button_Confirm"
+        android:id="@+id/button_save"
         android:layout_width="108dp"
         android:layout_height="64dp"
         android:layout_marginStart="60dp"
         android:layout_marginTop="60dp"
-        android:text="Confirm"
+        android:text="Save"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editText_productLink" />
 
