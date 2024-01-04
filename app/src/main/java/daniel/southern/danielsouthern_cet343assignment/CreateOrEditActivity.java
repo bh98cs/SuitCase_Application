@@ -1,16 +1,22 @@
 package daniel.southern.danielsouthern_cet343assignment;
 
+import static android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -19,19 +25,31 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.squareup.picasso.Picasso;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class CreateOrEditActivity extends AppCompatActivity implements View.OnClickListener {
 
+    private FirebaseAuth mAuth;
+    private FirebaseUser currentUser;
+    // Create a Cloud Storage reference from the app
+    private FirebaseStorage storage = FirebaseStorage.getInstance();
+    private StorageReference storageRef = storage.getReference();
+    public static final int RESULT_PICK_IMAGE = 2;
+    public static final String TAG = "CreateOrEditActivity";
+    private Uri productImageUri;
+    //initialise views
     EditText productTitle;
     EditText productDesc;
     EditText productLink;
     Button saveItem;
     Button cancelAction;
-    private FirebaseAuth mAuth;
-    private FirebaseUser currentUser;
+    Button loadImage;
+    ImageView productImageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,11 +69,17 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
         productDesc = findViewById(R.id.editText_productDesc);
         productLink = findViewById(R.id.editText_productLink);
 
+        productImageView = findViewById(R.id.imageView_productImage);
+        productImageView.setOnClickListener(this);
+
         saveItem = findViewById(R.id.button_save);
         saveItem.setOnClickListener(this);
 
         cancelAction = findViewById(R.id.button_cancelAction);
         cancelAction.setOnClickListener(this);
+
+        loadImage = findViewById(R.id.button_loadImage);
+        loadImage.setOnClickListener(this);
     }
 
     private void updateUI(FirebaseUser currentUser) {
@@ -73,6 +97,30 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
             saveItemClicked();
         } else if (v.getId() == R.id.button_cancelAction) {
             cancelActionClicked();
+        } else if (v.getId() == R.id.button_loadImage || v.getId() == R.id.imageView_productImage) {
+            selectImageFromAlbum();
+        }
+    }
+
+    private void selectImageFromAlbum() {
+        try{
+            Intent intent = new Intent(Intent.ACTION_PICK, EXTERNAL_CONTENT_URI);
+            //intent.setType("images/*");
+            startActivityForResult(intent, RESULT_PICK_IMAGE);
+        } catch (Exception e) {
+            Log.e(TAG, "Error selecting image.", e);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        //check if result is for the pick image request and check data retrieved is not null
+        if(requestCode == RESULT_PICK_IMAGE && resultCode == RESULT_OK && data != null && data.getData() != null){
+            productImageUri = data.getData();
+            Picasso.get().load(productImageUri).into(productImageView);
+        }else{
+            Log.e(TAG, "Error retrieving image from gallery.");
         }
     }
 
@@ -140,5 +188,9 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
                         Toast.makeText(CreateOrEditActivity.this, "Something went wrong", Toast.LENGTH_LONG).show();
                     }
                 });
+    }
+
+    private void saveImageToDB(String imageName, Uri imageUri){
+
     }
 }

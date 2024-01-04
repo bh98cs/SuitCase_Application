@@ -15,16 +15,21 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 public class CreateAccountActivity extends AppCompatActivity implements View.OnClickListener{
 
+    //tag for logs
     public static final String TAG = "CreateAccountActivity";
+    private FirebaseAuth mAuth;
+    //initialise views
     private EditText userEmail;
     private EditText userPassword;
     private Button createAccBtn;
     private Button loginBtn;
     private EditText confirmPassword;
-    private FirebaseAuth mAuth;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

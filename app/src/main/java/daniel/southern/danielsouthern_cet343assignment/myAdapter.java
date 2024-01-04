@@ -52,7 +52,7 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
     }
 
     public void deleteItem(int position){
-        //reference to firestore document
+        //reference to FireStore document
         getSnapshots().getSnapshot(position).getReference().delete();
     }
 

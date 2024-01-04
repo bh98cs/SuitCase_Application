@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -14,15 +16,23 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     //TODO: Add red background to cardview when swiping to delete and add different colour when editing
@@ -31,7 +41,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private FirebaseFirestore database = FirebaseFirestore.getInstance();
     private CollectionReference announcementRef = database.collection("itemUploads");
     private FirebaseAuth mAuth;
+    private FirebaseUser currentUser;
+    // Create a Cloud Storage reference from the app
+    private FirebaseStorage storage = FirebaseStorage.getInstance();
+    private StorageReference storageRef = storage.getReference();
+
+    //initialise FAB
     private FloatingActionButton createItemUpload;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,9 +60,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
-
         //retrieve current user to check if they're already logged in
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+        currentUser = mAuth.getCurrentUser();
         //update UI depending on whether user is logged in
         updateUI(currentUser);
     }
@@ -121,8 +137,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                //user swipes right
                 if(direction == 4){
-                    mAdapter.deleteItem(viewHolder.getAdapterPosition());
+                    RelativeLayout relativeLayout = findViewById(R.id.activity_main_layout);
+                    //store the position of the item in a local variable to use for deleting item and
+                    //potentially undoing deletion
+                    int position = viewHolder.getAdapterPosition();
+                    //store the deleted item in a local variable incase user wants to undo delete
+                    ItemUpload deletedItem = mAdapter.getItem(position);
+                    //delete item from recyclerview and FireStore
+                    mAdapter.deleteItem(position);
+                    //create Snackbar to provide user feedback and give option to undo deletion
+                    Snackbar snackbar = Snackbar.make(relativeLayout, "Item Deleted", Snackbar.LENGTH_LONG)
+                            .setAction("UNDO", new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    //undo the deletion
+                                    undoDelete(deletedItem);
+                                }
+                            });
+                    snackbar.show();
                 } else if (direction == 8) {
                     mAdapter.updateItem(viewHolder.getAdapterPosition());
                 }
@@ -157,6 +191,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         });
+    }
+
+    //method to undo a deletion of an item
+    private void undoDelete(ItemUpload deletedItem) {
+        //re-upload the item to FireStore
+        Map<String, Object> itemUpload = new HashMap<>();
+        itemUpload.put("itemTitle", deletedItem.getItemTitle());
+        itemUpload.put("itemDesc", deletedItem.getItemDesc());
+        itemUpload.put("itemLink", deletedItem.getItemLink());
+        itemUpload.put("email", currentUser.getEmail());
+        itemUpload.put("itemBought", deletedItem.getItemBought());
+
+        database.collection("itemUploads")
+                .add(itemUpload)
+                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                    @Override
+                    public void onSuccess(DocumentReference documentReference) {
+                        Toast.makeText(MainActivity.this, "Undo Successful", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(MainActivity.this, "Error Undoing Delete", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
     }
 
 }
