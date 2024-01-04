@@ -27,6 +27,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
 import java.util.HashMap;
@@ -154,43 +155,63 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
         String desc = productDesc.getText().toString().trim();
         String link = productLink.getText().toString().trim();
 
-        //get reference to database
-        FirebaseFirestore database = FirebaseFirestore.getInstance();
+            //get reference to database
+            FirebaseFirestore database = FirebaseFirestore.getInstance();
 
-        //create new ItemUpload
-        Map<String, Object> itemUpload = new HashMap<>();
-        itemUpload.put("itemTitle", title);
-        itemUpload.put("itemDesc", desc);
-        itemUpload.put("itemLink", link);
-        itemUpload.put("email", currentUser.getEmail());
-        //set item bought to false when created
-        itemUpload.put("itemBought", false);
+            //create new ItemUpload
+            Map<String, Object> itemUpload = new HashMap<>();
+            itemUpload.put("itemTitle", title);
+            itemUpload.put("itemDesc", desc);
+            itemUpload.put("itemLink", link);
+            itemUpload.put("email", currentUser.getEmail());
+            //set item bought to false when created
+            itemUpload.put("itemBought", false);
 
-        //add a new document with generated ID
-        database.collection("itemUploads")
-                .add(itemUpload)
-                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                    @Override
-                    public void onSuccess(DocumentReference documentReference) {
-                        Log.d("FSLog", "DocumentSnapshot added with ID: " + documentReference.getId());
-                        //user feedback to confirm new item has been added
-                        Toast.makeText(CreateOrEditActivity.this, "New Item added!", Toast.LENGTH_LONG).show();
-                        //return back to main activity to view all Items
-                        Intent intent = new Intent(CreateOrEditActivity.this, MainActivity.class);
-                        startActivity(intent);
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w("FSLog", "Error adding document", e);
-                        //user feedback to advise was unable to save new item
-                        Toast.makeText(CreateOrEditActivity.this, "Something went wrong", Toast.LENGTH_LONG).show();
-                    }
-                });
+            //add a new document with generated ID
+            database.collection("itemUploads")
+                    .add(itemUpload)
+                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                        @Override
+                        public void onSuccess(DocumentReference documentReference) {
+                            Log.d("FSLog", "DocumentSnapshot added with ID: " + documentReference.getId());
+                            saveImageToDB(productImageUri, documentReference.getId());
+                            //user feedback to confirm new item has been added
+                            Toast.makeText(CreateOrEditActivity.this, "New Item added!", Toast.LENGTH_LONG).show();
+                            //return back to main activity to view all Items
+                            Intent intent = new Intent(CreateOrEditActivity.this, MainActivity.class);
+                            startActivity(intent);
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.w("FSLog", "Error adding document", e);
+                            //user feedback to advise was unable to save new item
+                            Toast.makeText(CreateOrEditActivity.this, "Something went wrong", Toast.LENGTH_LONG).show();
+                        }
+                    });
+
     }
 
-    private void saveImageToDB(String imageName, Uri imageUri){
+    private void saveImageToDB(Uri imageUri, String itemID){
+        //storage reference to itemImages file in database
+        StorageReference itemImagesRef = storageRef.child("itemImages");
+        //save the file in file named after user's email and save image as the ID for the FireStore database
+        StorageReference itemImageReference = itemImagesRef.child(currentUser.getEmail()+"/" + itemID);
+        //save the Uri to the selected file
+        UploadTask uploadTask = itemImageReference.putFile(imageUri);
+
+        uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Log.i(TAG, "Image Upload Successful");
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e(TAG,"Failed to upload", e);
+            }
+        });
 
     }
 }

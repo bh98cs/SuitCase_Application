@@ -77,7 +77,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onStop() {
         super.onStop();
         mAdapter.stopListening();
-
     }
 
     private void updateUI(FirebaseUser currentUser) {
