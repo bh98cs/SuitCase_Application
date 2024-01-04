@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
@@ -14,13 +15,16 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -35,14 +39,18 @@ import java.util.Map;
 
 public class CreateOrEditActivity extends AppCompatActivity implements View.OnClickListener {
 
+    public static final String EXTRA_UPDATE_POSITION = "daniel.southern.danielsouthern_cet343assignment.UPDATE_POSITION";
+    public static final String TAG = "CreateOrEditActivity";
+    //changed this from 2 to 1 -- undo if doesnt work
+    public static final int RESULT_PICK_IMAGE = 1;
     private FirebaseAuth mAuth;
     private FirebaseUser currentUser;
     // Create a Cloud Storage reference from the app
     private FirebaseStorage storage = FirebaseStorage.getInstance();
-    private StorageReference storageRef = storage.getReference();
-    public static final int RESULT_PICK_IMAGE = 2;
-    public static final String TAG = "CreateOrEditActivity";
+    private StorageReference storageRef;
+    private StorageReference fileReference;
     private Uri productImageUri;
+    private String itemImageDownloadUrl;
     //initialise views
     EditText productTitle;
     EditText productDesc;
@@ -65,6 +73,9 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
         //check user is logged in before proceeding
         updateUI(currentUser);
 
+        //storage reference to itemImages file in database
+        storageRef = FirebaseStorage.getInstance().getReference("itemImages");
+
         //instantiate views
         productTitle = findViewById(R.id.editText_productTitle);
         productDesc = findViewById(R.id.editText_productDesc);
@@ -81,6 +92,28 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
 
         loadImage = findViewById(R.id.button_loadImage);
         loadImage.setOnClickListener(this);
+
+        //get intent that started activity
+        Intent intent = getIntent();
+        int position = intent.getIntExtra(MainActivity.EXTRA_UPDATE_POSITION, -2);
+
+        //check if intent to this activity passed a position
+        if(position != -2){
+            //position is not default value therefore a position of item to edit has been given
+            loadItemDetails();
+        }
+    }
+
+    private void loadItemDetails() {
+        //TODO: retrieve itemUpload details and load them into views on this activity.....
+        // This could be done by either intenting all features to this page and then intenting
+        // them back with position to mainactivity -> then
+        // call update method to apply intented features at the intented position
+        // OR....
+        // figure out how to update the FireStore DB from this class by retrieving the the
+        // id and then updating. May need to figure out how to apply adapter to this class
+        // OR.....
+        // handle the edit features on the MainActivity by enabling input on the textviews
     }
 
     private void updateUI(FirebaseUser currentUser) {
@@ -106,7 +139,6 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
     private void selectImageFromAlbum() {
         try{
             Intent intent = new Intent(Intent.ACTION_PICK, EXTERNAL_CONTENT_URI);
-            //intent.setType("images/*");
             startActivityForResult(intent, RESULT_PICK_IMAGE);
         } catch (Exception e) {
             Log.e(TAG, "Error selecting image.", e);
@@ -151,67 +183,97 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
     }
 
     private void saveItemClicked() {
-        String title = productTitle.getText().toString().trim();
-        String desc = productDesc.getText().toString().trim();
-        String link = productLink.getText().toString().trim();
-
-            //get reference to database
-            FirebaseFirestore database = FirebaseFirestore.getInstance();
-
-            //create new ItemUpload
-            Map<String, Object> itemUpload = new HashMap<>();
-            itemUpload.put("itemTitle", title);
-            itemUpload.put("itemDesc", desc);
-            itemUpload.put("itemLink", link);
-            itemUpload.put("email", currentUser.getEmail());
-            //set item bought to false when created
-            itemUpload.put("itemBought", false);
-
-            //add a new document with generated ID
-            database.collection("itemUploads")
-                    .add(itemUpload)
-                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+        //save image first to retrieve download Url
+        if(productImageUri != null){
+            //create new path for image file using current time in milliseconds as a unique ID
+            fileReference = storageRef.child(System.currentTimeMillis() + "."
+                    + getFileExtension(productImageUri));
+            //try save the file to FireBase
+            fileReference.putFile(productImageUri)
+                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override
-                        public void onSuccess(DocumentReference documentReference) {
-                            Log.d("FSLog", "DocumentSnapshot added with ID: " + documentReference.getId());
-                            saveImageToDB(productImageUri, documentReference.getId());
-                            //user feedback to confirm new item has been added
-                            Toast.makeText(CreateOrEditActivity.this, "New Item added!", Toast.LENGTH_LONG).show();
-                            //return back to main activity to view all Items
-                            Intent intent = new Intent(CreateOrEditActivity.this, MainActivity.class);
-                            startActivity(intent);
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            //Successfully saved image to FireBase
+                            Log.d(TAG, "onSuccess: Image uploaded");
+                            //retrieve download Url for image to save with item details in FireStore DB
+                            fileReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                @Override
+                                public void onSuccess(Uri uri) {
+                                    //store download Url in a string to save to FireStore
+                                    itemImageDownloadUrl = uri.toString();
+                                    Log.d(TAG, "onSuccess: Successfully retrieved download Url: " + itemImageDownloadUrl);
+                                    //once successfully retrieved download Url system is ready to save item to FireBase
+                                    saveItemToDataBase();
+                                }
+                            })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Log.e(TAG, "onFailure: Failed to retrieve download Url.", e);
+                                        }
+                                    });
                         }
                     })
                     .addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            Log.w("FSLog", "Error adding document", e);
-                            //user feedback to advise was unable to save new item
-                            Toast.makeText(CreateOrEditActivity.this, "Something went wrong", Toast.LENGTH_LONG).show();
+                            Log.e(TAG, "onFailure: Unable to upload Image", e);
                         }
                     });
+        }else{
+            Toast.makeText(this, "Please provide an Image for the item.", Toast.LENGTH_SHORT).show();
+        }
 
     }
 
-    private void saveImageToDB(Uri imageUri, String itemID){
-        //storage reference to itemImages file in database
-        StorageReference itemImagesRef = storageRef.child("itemImages");
-        //save the file in file named after user's email and save image as the ID for the FireStore database
-        StorageReference itemImageReference = itemImagesRef.child(currentUser.getEmail()+"/" + itemID);
-        //save the Uri to the selected file
-        UploadTask uploadTask = itemImageReference.putFile(imageUri);
+    private void saveItemToDataBase() {
+        String title = productTitle.getText().toString().trim();
+        String desc = productDesc.getText().toString().trim();
+        String link = productLink.getText().toString().trim();
 
-        uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                Log.i(TAG, "Image Upload Successful");
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.e(TAG,"Failed to upload", e);
-            }
-        });
+        //get reference to database
+        FirebaseFirestore database = FirebaseFirestore.getInstance();
+
+        //create new ItemUpload
+        Map<String, Object> itemUpload = new HashMap<>();
+        itemUpload.put("itemTitle", title);
+        itemUpload.put("itemDesc", desc);
+        itemUpload.put("itemLink", link);
+        itemUpload.put("email", currentUser.getEmail());
+        itemUpload.put("imageDownloadUrl", itemImageDownloadUrl);
+        //set item bought to false when created
+        itemUpload.put("itemBought", false);
+
+        //add a new document with generated ID
+        database.collection("itemUploads")
+                .add(itemUpload)
+                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                    @Override
+                    public void onSuccess(DocumentReference documentReference) {
+                        Log.d("FSLog", "DocumentSnapshot added with ID: " + documentReference.getId());
+                        Log.d(TAG, "Item added with Url: " + itemUpload.get("imageDownloadUrl"));
+                        //user feedback to confirm new item has been added
+                        Toast.makeText(CreateOrEditActivity.this, "New Item added!", Toast.LENGTH_LONG).show();
+                        //return back to main activity to view all Items
+                        Intent intent = new Intent(CreateOrEditActivity.this, MainActivity.class);
+                        startActivity(intent);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w("FSLog", "Error adding document", e);
+                        //user feedback to advise was unable to save new item
+                        Toast.makeText(CreateOrEditActivity.this, "Something went wrong", Toast.LENGTH_LONG).show();
+                    }
+                });
 
     }
+
+    private String getFileExtension(Uri uri){
+        ContentResolver contentResolver = getContentResolver();
+        MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+        return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri));
+    }
+
 }

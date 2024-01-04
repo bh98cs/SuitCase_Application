@@ -3,10 +3,12 @@ package daniel.southern.danielsouthern_cet343assignment;
 
 
 
+import android.content.Context;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -17,8 +19,10 @@ import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.SetOptions;
+import com.squareup.picasso.Picasso;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.ItemUploadHolder> {
@@ -30,7 +34,9 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
     public static final String KEY_ITEM_BOUGHT = "itemBought";
 
 
-    public myAdapter(@NonNull FirestoreRecyclerOptions<ItemUpload> options){super(options);}
+    public myAdapter(@NonNull FirestoreRecyclerOptions<ItemUpload> options){
+        super(options);
+    }
 
     @NonNull
     @Override
@@ -49,6 +55,11 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
             //TODO: change this to a color suiting the color scheme
             holder.itemBackground.setBackgroundColor(Color.GREEN);
         }
+        Picasso.get()
+                .load(model.getImageDownloadUrl())
+                .fit()
+                .centerCrop()
+                .into(holder.imageViewImage);
     }
 
     public void deleteItem(int position){
@@ -92,6 +103,7 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
         TextView textViewTitle;
         TextView textViewDesc;
         TextView textViewLink;
+        ImageView imageViewImage;
         //item background to change colour to indicate whether it has been bought or not
         CardView itemBackground;
 
@@ -100,6 +112,7 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
             textViewTitle = itemView.findViewById(R.id.text_view_itemTitle);
             textViewDesc = itemView.findViewById(R.id.text_view_itemDesc);
             textViewLink = itemView.findViewById(R.id.text_view_itemLink);
+            imageViewImage = itemView.findViewById(R.id.imageView_itemImage);
             itemBackground = itemView.findViewById(R.id.cardView);
 
             itemView.setOnClickListener(new View.OnClickListener() {

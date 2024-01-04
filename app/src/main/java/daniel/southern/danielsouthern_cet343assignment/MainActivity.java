@@ -30,13 +30,16 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     //TODO: Add red background to cardview when swiping to delete and add different colour when editing
+    //TODO: Potentially use coding in flow's tutorial to add search function to recyclerview
     public static final String TAG = "MainActivity";
+    public static final String EXTRA_UPDATE_POSITION = "daniel.southern.danielsouthern_cet343assignment.UPDATE_POSITION";
     private myAdapter mAdapter;
     private FirebaseFirestore database = FirebaseFirestore.getInstance();
     private CollectionReference announcementRef = database.collection("itemUploads");
@@ -64,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         currentUser = mAuth.getCurrentUser();
         //update UI depending on whether user is logged in
         updateUI(currentUser);
+
     }
 
     @Override
@@ -136,7 +140,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                //user swipes right
+                //user swipes left to delete
                 if(direction == 4){
                     RelativeLayout relativeLayout = findViewById(R.id.activity_main_layout);
                     //store the position of the item in a local variable to use for deleting item and
@@ -157,7 +161,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             });
                     snackbar.show();
                 } else if (direction == 8) {
-                    mAdapter.updateItem(viewHolder.getAdapterPosition());
+                    //mAdapter.updateItem(viewHolder.getAdapterPosition());
+                    //user swipes right to edit
+                    Intent intent = new Intent(MainActivity.this, CreateOrEditActivity.class);
+                    int position = viewHolder.getAdapterPosition();
+                    intent.putExtra(EXTRA_UPDATE_POSITION, position);
+                    startActivity(intent);
+
                 }
 
 
@@ -201,6 +211,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         itemUpload.put("itemLink", deletedItem.getItemLink());
         itemUpload.put("email", currentUser.getEmail());
         itemUpload.put("itemBought", deletedItem.getItemBought());
+        itemUpload.put("imageDownloadUrl", deletedItem.getImageDownloadUrl());
 
         database.collection("itemUploads")
                 .add(itemUpload)

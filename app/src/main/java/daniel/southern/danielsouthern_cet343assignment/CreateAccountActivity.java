@@ -19,6 +19,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 public class CreateAccountActivity extends AppCompatActivity implements View.OnClickListener{
+    //TODO: follow Coding in Flow's tutorial for validating email and password
 
     //tag for logs
     public static final String TAG = "CreateAccountActivity";
