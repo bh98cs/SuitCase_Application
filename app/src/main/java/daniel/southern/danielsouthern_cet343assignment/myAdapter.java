@@ -3,7 +3,6 @@ package daniel.southern.danielsouthern_cet343assignment;
 
 
 
-import android.content.Context;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,7 +21,6 @@ import com.google.firebase.firestore.SetOptions;
 import com.squareup.picasso.Picasso;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.ItemUploadHolder> {
@@ -67,15 +65,12 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
         getSnapshots().getSnapshot(position).getReference().delete();
     }
 
-    public void updateItem(int position){
-        //TODO: Look into this method and allow for user to update all fields
-        String desc = "changed description";
-        Map<String, Object> itemUpload = new HashMap<>();
-        itemUpload.put(KEY_DESCRIPTION, desc);
-        getSnapshots().getSnapshot(position).getReference().set(itemUpload, SetOptions.merge());
+    //method to return item's FireBase doc ID
+    public String getItemFirebaseId(int position){
+        return getSnapshots().getSnapshot(position).getReference().getId();
     }
 
-    //method to mark item as bought/not-bought on a double click
+    //method to mark item as bought/not-bought on a long click
     public void changeIsBought(boolean isBought, int position){
         //set itemBought bool to opposite of current bool (allowing user to change between true and false)
         Map<String, Object> itemUpload = new HashMap<>();

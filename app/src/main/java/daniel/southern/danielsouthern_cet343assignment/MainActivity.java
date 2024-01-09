@@ -1,5 +1,6 @@
 package daniel.southern.danielsouthern_cet343assignment;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,6 +11,7 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -39,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //TODO: Add red background to cardview when swiping to delete and add different colour when editing
     //TODO: Potentially use coding in flow's tutorial to add search function to recyclerview
     public static final String TAG = "MainActivity";
-    public static final String EXTRA_UPDATE_POSITION = "daniel.southern.danielsouthern_cet343assignment.UPDATE_POSITION";
+    public static final String EXTRA_ITEM_FIREBASE_ID = "daniel.southern.danielsouthern_cet343assignment.ITEM_FIREBASE_ID ";
     private myAdapter mAdapter;
     private FirebaseFirestore database = FirebaseFirestore.getInstance();
     private CollectionReference announcementRef = database.collection("itemUploads");
@@ -95,12 +97,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void logout(){
-        //TODO: Add requirement for user to confirm sign out
-        mAuth.signOut();
-        Log.i(TAG, "User Signed out");
-        //send user back to login page
-        Intent intent = new Intent(this, LoginActivity.class);
-        startActivity(intent);
+        //request confirmation to sign out
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("Confirm Logout")
+                        .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                mAuth.signOut();
+                                Log.i(TAG, "User Signed out");
+                                //send user back to login page
+                                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                                startActivity(intent);
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                //do nothing
+                            }
+                        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
     }
 
     @Override
@@ -165,7 +184,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     //user swipes right to edit
                     Intent intent = new Intent(MainActivity.this, CreateOrEditActivity.class);
                     int position = viewHolder.getAdapterPosition();
-                    intent.putExtra(EXTRA_UPDATE_POSITION, position);
+                    String itemFirebaseId = mAdapter.getItemFirebaseId(position);
+                    intent.putExtra(EXTRA_ITEM_FIREBASE_ID , itemFirebaseId);
                     startActivity(intent);
 
                 }

@@ -27,8 +27,12 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -39,18 +43,29 @@ import java.util.Map;
 
 public class CreateOrEditActivity extends AppCompatActivity implements View.OnClickListener {
 
-    public static final String EXTRA_UPDATE_POSITION = "daniel.southern.danielsouthern_cet343assignment.UPDATE_POSITION";
     public static final String TAG = "CreateOrEditActivity";
-    //changed this from 2 to 1 -- undo if doesnt work
-    public static final int RESULT_PICK_IMAGE = 1;
     private FirebaseAuth mAuth;
     private FirebaseUser currentUser;
-    // Create a Cloud Storage reference from the app
     private FirebaseStorage storage = FirebaseStorage.getInstance();
+    private FirebaseFirestore database = FirebaseFirestore.getInstance();
     private StorageReference storageRef;
     private StorageReference fileReference;
+    //reference for editing an item
+    private DocumentReference editItemRef;
+
+    //variables for viewing and saving item image
     private Uri productImageUri;
     private String itemImageDownloadUrl;
+    public static final int RESULT_PICK_IMAGE = 1;
+
+    //variables to store Item details for item being edited
+    private String editItemTitle;
+    private String editItemDesc;
+    private String editItemLink;
+    private String editItemImageUrl;
+
+    //boolean to track whether user is editing an existing item
+    private boolean editItem;
     //initialise views
     EditText productTitle;
     EditText productDesc;
@@ -93,27 +108,61 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
         loadImage = findViewById(R.id.button_loadImage);
         loadImage.setOnClickListener(this);
 
+        //set edit item bool to false
+        editItem = false;
+
         //get intent that started activity
         Intent intent = getIntent();
-        int position = intent.getIntExtra(MainActivity.EXTRA_UPDATE_POSITION, -2);
+        String firebaseDocId = intent.getStringExtra(MainActivity.EXTRA_ITEM_FIREBASE_ID);
 
-        //check if intent to this activity passed a position
-        if(position != -2){
+        //check if intent to this activity passed a document ID
+        if(firebaseDocId != null){
+            //set edit item bool to true as intent sent Document ID to edit
+            editItem = true;
+            //retrieve item from firebase using ID intented from MainActivity
+            editItemRef = database.collection("itemUploads").document(firebaseDocId);
             //position is not default value therefore a position of item to edit has been given
             loadItemDetails();
         }
     }
 
+    //method to load item details if user has selected to edit an item
     private void loadItemDetails() {
-        //TODO: retrieve itemUpload details and load them into views on this activity.....
-        // This could be done by either intenting all features to this page and then intenting
-        // them back with position to mainactivity -> then
-        // call update method to apply intented features at the intented position
-        // OR....
-        // figure out how to update the FireStore DB from this class by retrieving the the
-        // id and then updating. May need to figure out how to apply adapter to this class
-        // OR.....
-        // handle the edit features on the MainActivity by enabling input on the textviews
+        editItemRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if(task.isSuccessful()){
+                    DocumentSnapshot document = task.getResult();
+                    if(document.exists()){
+                        //document retrieved successfully
+                        Log.i(TAG, "FireBase Document retrieved!");
+                        //retrieve data stored in Firebase
+                        editItemTitle = document.getString("itemTitle");
+                        editItemDesc = document.getString("itemDesc");
+                        editItemLink = document.getString("itemLink");
+                        editItemImageUrl = document.getString("imageDownloadUrl");
+
+                        //load data into views
+                        productTitle.setText(editItemTitle);
+                        productDesc.setText(editItemDesc);
+                        productLink.setText(editItemLink);
+
+                        //load image into image view using Picasso library
+                        Picasso.get()
+                                .load(editItemImageUrl)
+                                .fit()
+                                .centerCrop()
+                                .into(productImageView);
+                    }
+                    else{
+                        //document is not in FireStore database (this should not occur)
+                        Log.w(TAG, "Document does not exist.");
+                    }
+                }else {
+                    Log.e(TAG, "Failed to retrieve FireBase Document.", task.getException());
+                }
+            }
+        });
     }
 
     private void updateUI(FirebaseUser currentUser) {
@@ -128,12 +177,57 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
     public void onClick(View v) {
         //check which button has been clicked and call relative method
         if(v.getId() == R.id.button_save){
-            saveItemClicked();
+            saveItem();
+
         } else if (v.getId() == R.id.button_cancelAction) {
             cancelActionClicked();
         } else if (v.getId() == R.id.button_loadImage || v.getId() == R.id.imageView_productImage) {
             selectImageFromAlbum();
         }
+    }
+
+    private void updateItem() {
+
+        //create new hash map
+        Map<String, Object> editedItem = new HashMap<>();
+
+        //retrieve user input from views
+        String title = productTitle.getText().toString().trim();
+        String desc = productDesc.getText().toString().trim();
+        String link = productLink.getText().toString().trim();
+
+        //add user input to hash map
+        editedItem.put("itemTitle", title);
+        editedItem.put("itemDesc", desc);
+        editedItem.put("itemLink", link);
+        //check if the image has been changed
+        if(itemImageDownloadUrl != null){
+            //save new image url
+            editedItem.put("imageDownloadUrl", itemImageDownloadUrl);
+        }
+
+        //update document with details in hash map
+        editItemRef.update(editedItem)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        //user feedback to confirm item successfully updated
+                        Toast.makeText(CreateOrEditActivity.this, "Updated Successfully", Toast.LENGTH_SHORT).show();
+                        //return user to main screen
+                        Intent intent = new Intent(CreateOrEditActivity.this, MainActivity.class);
+                        startActivity(intent);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        //user feedback to advise update was unsuccessful
+                        Toast.makeText(CreateOrEditActivity.this, "Unable to Update details", Toast.LENGTH_SHORT).show();
+                        //log the error causing update to fail
+                        Log.e(TAG, "onFailure: Unable to update FireBase Document", e);
+                    }
+                });
+
     }
 
     private void selectImageFromAlbum() {
@@ -182,7 +276,7 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
 
     }
 
-    private void saveItemClicked() {
+    private void saveItem() {
         //save image first to retrieve download Url
         if(productImageUri != null){
             //create new path for image file using current time in milliseconds as a unique ID
@@ -203,7 +297,14 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
                                     itemImageDownloadUrl = uri.toString();
                                     Log.d(TAG, "onSuccess: Successfully retrieved download Url: " + itemImageDownloadUrl);
                                     //once successfully retrieved download Url system is ready to save item to FireBase
-                                    saveItemToDataBase();
+                                    if(editItem){
+                                        //update existing item
+                                        updateItem();
+                                    }
+                                    else{
+                                        //create new item
+                                        saveItemToDataBase();
+                                    }
                                 }
                             })
                                     .addOnFailureListener(new OnFailureListener() {
@@ -220,7 +321,15 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
                             Log.e(TAG, "onFailure: Unable to upload Image", e);
                         }
                     });
-        }else{
+        }
+        //user is editing item but productImageUri therefore have not changed the image
+        else if (editItem) {
+            //update the item details
+            updateItem();
+
+        }
+        //no image has been given
+        else{
             Toast.makeText(this, "Please provide an Image for the item.", Toast.LENGTH_SHORT).show();
         }
 
@@ -230,9 +339,6 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
         String title = productTitle.getText().toString().trim();
         String desc = productDesc.getText().toString().trim();
         String link = productLink.getText().toString().trim();
-
-        //get reference to database
-        FirebaseFirestore database = FirebaseFirestore.getInstance();
 
         //create new ItemUpload
         Map<String, Object> itemUpload = new HashMap<>();
