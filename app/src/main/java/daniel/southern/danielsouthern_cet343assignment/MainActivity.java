@@ -2,6 +2,8 @@ package daniel.southern.danielsouthern_cet343assignment;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -13,6 +15,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -37,8 +40,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
-    //TODO: Add red background to cardview when swiping to delete and add different colour when editing
     //TODO: Potentially use coding in flow's tutorial to add search function to recyclerview
     public static final String TAG = "MainActivity";
     public static final String EXTRA_ITEM_FIREBASE_ID = "daniel.southern.danielsouthern_cet343assignment.ITEM_FIREBASE_ID ";
@@ -154,6 +158,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                //TODO: Make onClick change ItemBought and allow long click to move items
                 return false;
             }
 
@@ -180,7 +185,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             });
                     snackbar.show();
                 } else if (direction == 8) {
-                    //mAdapter.updateItem(viewHolder.getAdapterPosition());
                     //user swipes right to edit
                     Intent intent = new Intent(MainActivity.this, CreateOrEditActivity.class);
                     int position = viewHolder.getAdapterPosition();
@@ -191,6 +195,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
 
 
+            }
+            @Override
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                //create background colors and icons to display when swiping items using RecyclerViewSwipeDecorator library
+                new RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                        //TODO: this color will need to be changed
+                        .addSwipeLeftBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.red))
+                        .addSwipeLeftActionIcon(R.drawable.baseline_delete)
+                        .addSwipeRightBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.blue))
+                        .addSwipeRightActionIcon(R.drawable.baseline_edit)
+                        .create()
+                        .decorate();
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
             }
         }).attachToRecyclerView(recyclerView);
 
