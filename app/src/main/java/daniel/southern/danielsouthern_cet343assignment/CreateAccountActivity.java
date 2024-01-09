@@ -20,7 +20,7 @@ import com.google.firebase.storage.StorageReference;
 
 public class CreateAccountActivity extends AppCompatActivity implements View.OnClickListener{
     //TODO: follow Coding in Flow's tutorial for validating email and password
-
+    public static final String EXTRA_EMAIL_ADDRESS = "daniel.southern.danielsouthern_cet343assignment.EXTRA_EMAIL_ADDRESS";
     //tag for logs
     public static final String TAG = "CreateAccountActivity";
     private FirebaseAuth mAuth;
@@ -53,8 +53,9 @@ public class CreateAccountActivity extends AppCompatActivity implements View.OnC
 
     @Override
     public void onClick(View v) {
+        //get user email outside of if statement as needed for both scenarios
+        String email = userEmail.getText().toString().trim();
         if(v.getId() == R.id.button_CreateAccount){
-            String email = userEmail.getText().toString().trim();
             String password = userPassword.getText().toString();
             String password2 = confirmPassword.getText().toString();
             //create account
@@ -67,7 +68,8 @@ public class CreateAccountActivity extends AppCompatActivity implements View.OnC
         } else if (v.getId() == R.id.button_Login) {
             //send user to login page
             Intent intent = new Intent(this, LoginActivity.class);
-            //TODO: send text from editText_UserEmail to LoginActivity and prepopulate
+            //send email address to login page
+            intent.putExtra(EXTRA_EMAIL_ADDRESS, email);
             startActivity(intent);
         }
     }

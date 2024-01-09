@@ -27,7 +27,6 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
 
     private OnItemClickListener listener;
     private OnItemLongClickListener longClickListener;
-    public static final String KEY_DESCRIPTION = "itemDesc";
     //key to change whether item is to be marked as bought
     public static final String KEY_ITEM_BOUGHT = "itemBought";
 
@@ -48,6 +47,7 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
         holder.textViewTitle.setText(model.getItemTitle());
         holder.textViewDesc.setText(model.getItemDesc());
         holder.textViewLink.setText(model.getItemLink());
+        holder.textViewPrice.setText("£"+model.getItemPrice());
         //if item is marked as being bought update color
         if(model.getItemBought()){
             //TODO: change this to a color suiting the color scheme
@@ -98,6 +98,7 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
         TextView textViewTitle;
         TextView textViewDesc;
         TextView textViewLink;
+        TextView textViewPrice;
         ImageView imageViewImage;
         //item background to change colour to indicate whether it has been bought or not
         CardView itemBackground;
@@ -107,6 +108,7 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
             textViewTitle = itemView.findViewById(R.id.text_view_itemTitle);
             textViewDesc = itemView.findViewById(R.id.text_view_itemDesc);
             textViewLink = itemView.findViewById(R.id.text_view_itemLink);
+            textViewPrice = itemView.findViewById(R.id.textView_itemPrice);
             imageViewImage = itemView.findViewById(R.id.imageView_itemImage);
             itemBackground = itemView.findViewById(R.id.cardView);
 

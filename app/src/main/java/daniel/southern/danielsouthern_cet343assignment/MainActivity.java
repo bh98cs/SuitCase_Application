@@ -43,9 +43,9 @@ import java.util.Map;
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
-    //TODO: Potentially use coding in flow's tutorial to add search function to recyclerview
+    //TODO: Add toolbar with name of app and a logout button
     public static final String TAG = "MainActivity";
-    public static final String EXTRA_ITEM_FIREBASE_ID = "daniel.southern.danielsouthern_cet343assignment.ITEM_FIREBASE_ID ";
+    public static final String EXTRA_ITEM_FIREBASE_ID = "daniel.southern.danielsouthern_cet343assignment.ITEM_FIREBASE_ID";
     private myAdapter mAdapter;
     private FirebaseFirestore database = FirebaseFirestore.getInstance();
     private CollectionReference announcementRef = database.collection("itemUploads");
@@ -215,19 +215,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onItemClick(DocumentSnapshot documentSnapshot, int position) {
                 ItemUpload itemUpload = documentSnapshot.toObject(ItemUpload.class);
-                String id = documentSnapshot.getId();
-                Toast.makeText(MainActivity.this,
-                        "Position: " + position + " ID: " + id, Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        mAdapter.setOnItemLongClickListener(new myAdapter.OnItemLongClickListener(){
-            @Override
-            public void onItemLongClick(DocumentSnapshot documentSnapshot, int position) {
-                ItemUpload itemUpload = documentSnapshot.toObject(ItemUpload.class);
-                String id = documentSnapshot.getId();
-                Toast.makeText(MainActivity.this,
-                        "Long click", Toast.LENGTH_SHORT).show();
                 if(itemUpload != null){
                     mAdapter.changeIsBought(itemUpload.getItemBought(), position);
                 }
@@ -237,6 +224,55 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         });
+
+        mAdapter.setOnItemLongClickListener(new myAdapter.OnItemLongClickListener(){
+            @Override
+            public void onItemLongClick(DocumentSnapshot documentSnapshot, int position) {
+                //get title and link of item selected
+                String itemTitle = documentSnapshot.getString("itemTitle");
+                String itemLink = documentSnapshot.getString("itemLink");
+                String itemDesc = documentSnapshot.getString("itemDesc");
+                String itemPrice = documentSnapshot.getString("itemPrice");
+
+                //check item title and link are not null
+                if(itemTitle != null && itemLink != null){
+                    String smsMessage = createSMSMessage(itemTitle, itemDesc, itemPrice, itemLink);
+                    //TODO: Fix bug as app crashes when returned to from sending SMS
+                    //set up intent to send item as SMS
+                    Intent sendSMSIntent = new Intent();
+                    sendSMSIntent.setAction(Intent.ACTION_SEND);
+                    sendSMSIntent.putExtra(Intent.EXTRA_TEXT, smsMessage);
+                    sendSMSIntent.setType("text/plain");
+
+                    startActivity(sendSMSIntent);
+                }
+                else{
+                    //user feedback to advise item must have a valid title and link
+                    Toast.makeText(MainActivity.this, "Please select an item with a valid title and link.", Toast.LENGTH_LONG).show();
+                }
+
+            }
+        });
+    }
+
+    private String createSMSMessage(String itemTitle, String itemDesc, String itemPrice, String itemLink) {
+        //variable to store the template message in
+        String message;
+        //check if link saved on Firebase document is empty
+        if(itemLink != ""){
+            //create SMS template message containing link
+            message = "Hi!\n\nHere's the link to purchase the " + itemTitle + " needed for our " +
+                    "holiday.\n\n" + itemLink + "\n\nProduct Description: " + itemDesc + "\n\nProduct Price: £" + itemPrice
+                    + "\n\n(This message was sent through Suitcase)";
+        }
+        else{
+            //template message without a link
+            message = "Hi!\n\nPlease can you purchase the " + itemTitle + " needed for our " +
+                    "holiday.\n\nProduct Description: " + itemDesc + "\n\nProduct Price: £" + itemPrice
+                    + "\n\n(This message was sent through Suitcase)";
+        }
+        //return SMS template message
+        return message;
     }
 
     //method to undo a deletion of an item
@@ -246,6 +282,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         itemUpload.put("itemTitle", deletedItem.getItemTitle());
         itemUpload.put("itemDesc", deletedItem.getItemDesc());
         itemUpload.put("itemLink", deletedItem.getItemLink());
+        itemUpload.put("itemPrice", deletedItem.getItemPrice());
         itemUpload.put("email", currentUser.getEmail());
         itemUpload.put("itemBought", deletedItem.getItemBought());
         itemUpload.put("imageDownloadUrl", deletedItem.getImageDownloadUrl());

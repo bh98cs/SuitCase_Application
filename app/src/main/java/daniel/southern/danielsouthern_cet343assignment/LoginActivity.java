@@ -18,7 +18,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
-    private static final String USER_ID = "daniel.southern.danielsoutherncet343assignment.USER_ID";
     public static final String TAG = "LoginActivity";
     private FirebaseAuth mAuth;
     private Button loginBtn;
@@ -42,7 +41,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         loginBtn.setOnClickListener(this);
         createAccBtn.setOnClickListener(this);
-
+        //get intent that started activity
+        Intent intent = getIntent();
+        String email = intent.getStringExtra(CreateAccountActivity.EXTRA_EMAIL_ADDRESS);
+        //prepopulate email address for user if filled out in CreateAccountActivity
+        userEmail.setText(email);
     }
 
     @Override

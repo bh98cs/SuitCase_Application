@@ -62,6 +62,7 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
     private String editItemTitle;
     private String editItemDesc;
     private String editItemLink;
+    private String editItemPrice;
     private String editItemImageUrl;
 
     //boolean to track whether user is editing an existing item
@@ -70,6 +71,7 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
     EditText productTitle;
     EditText productDesc;
     EditText productLink;
+    EditText productPrice;
     Button saveItem;
     Button cancelAction;
     Button loadImage;
@@ -95,6 +97,7 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
         productTitle = findViewById(R.id.editText_productTitle);
         productDesc = findViewById(R.id.editText_productDesc);
         productLink = findViewById(R.id.editText_productLink);
+        productPrice = findViewById(R.id.editText_productPrice);
 
         productImageView = findViewById(R.id.imageView_productImage);
         productImageView.setOnClickListener(this);
@@ -140,12 +143,14 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
                         editItemTitle = document.getString("itemTitle");
                         editItemDesc = document.getString("itemDesc");
                         editItemLink = document.getString("itemLink");
+                        editItemPrice = document.getString("itemPrice");
                         editItemImageUrl = document.getString("imageDownloadUrl");
 
                         //load data into views
                         productTitle.setText(editItemTitle);
                         productDesc.setText(editItemDesc);
                         productLink.setText(editItemLink);
+                        productPrice.setText(editItemPrice);
 
                         //load image into image view using Picasso library
                         Picasso.get()
@@ -195,11 +200,13 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
         String title = productTitle.getText().toString().trim();
         String desc = productDesc.getText().toString().trim();
         String link = productLink.getText().toString().trim();
+        String price = productPrice.getText().toString().trim();
 
         //add user input to hash map
         editedItem.put("itemTitle", title);
         editedItem.put("itemDesc", desc);
         editedItem.put("itemLink", link);
+        editedItem.put("itemPrice", price);
         //check if the image has been changed
         if(itemImageDownloadUrl != null){
             //save new image url
@@ -276,6 +283,7 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
 
     }
 
+    //TODO: clean up this code as can separate saving image into it's own method
     private void saveItem() {
         //save image first to retrieve download Url
         if(productImageUri != null){
@@ -290,6 +298,7 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
                             //Successfully saved image to FireBase
                             Log.d(TAG, "onSuccess: Image uploaded");
                             //retrieve download Url for image to save with item details in FireStore DB
+                            //TODO: add spinner for user feedback when saving image
                             fileReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                 @Override
                                 public void onSuccess(Uri uri) {
@@ -326,7 +335,6 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
         else if (editItem) {
             //update the item details
             updateItem();
-
         }
         //no image has been given
         else{
@@ -339,12 +347,14 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
         String title = productTitle.getText().toString().trim();
         String desc = productDesc.getText().toString().trim();
         String link = productLink.getText().toString().trim();
+        String price = productPrice.getText().toString().trim();
 
         //create new ItemUpload
         Map<String, Object> itemUpload = new HashMap<>();
         itemUpload.put("itemTitle", title);
         itemUpload.put("itemDesc", desc);
         itemUpload.put("itemLink", link);
+        itemUpload.put("itemPrice", price);
         itemUpload.put("email", currentUser.getEmail());
         itemUpload.put("imageDownloadUrl", itemImageDownloadUrl);
         //set item bought to false when created

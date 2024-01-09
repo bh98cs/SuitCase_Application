@@ -6,6 +6,7 @@ public class ItemUpload {
     private String itemDesc;
     private String itemLink;
     private String email;
+    private String itemPrice;
     private boolean itemBought;
     private String imageDownloadUrl;
 
@@ -13,11 +14,12 @@ public class ItemUpload {
         //empty constructor needed
     }
 
-    public ItemUpload(String itemTitle, String itemDesc, String itemLink, String email, boolean itemBought, String imageDownloadUrl){
+    public ItemUpload(String itemTitle, String itemDesc, String itemLink, String email, String itemPrice, boolean itemBought, String imageDownloadUrl){
         this.itemTitle = itemTitle;
         this.itemDesc = itemDesc;
         this.itemLink = itemLink;
         this.email = email;
+        this.itemPrice = itemPrice;
         //set item bought to false when a new item is created
         this.itemBought = itemBought;
         this.imageDownloadUrl = imageDownloadUrl;
@@ -45,5 +47,9 @@ public class ItemUpload {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getItemPrice() {
+        return itemPrice;
     }
 }
