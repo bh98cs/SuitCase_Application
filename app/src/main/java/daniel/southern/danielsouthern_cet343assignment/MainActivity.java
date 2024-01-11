@@ -15,6 +15,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -43,7 +44,6 @@ import java.util.Map;
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
-    //TODO: Add toolbar with name of app and a logout button
     public static final String TAG = "MainActivity";
     public static final String EXTRA_ITEM_FIREBASE_ID = "daniel.southern.danielsouthern_cet343assignment.ITEM_FIREBASE_ID";
     private myAdapter mAdapter;
@@ -58,6 +58,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //initialise FAB
     private FloatingActionButton createItemUpload;
 
+    //initialise toolbar
+    private Toolbar toolbar;
+    //initialise logout button on toolbar
+    private ImageView logoutIcon;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,6 +71,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Initialize FAB and set OnClickListener
         createItemUpload = findViewById(R.id.floatingActionButton_createItemUpload);
         createItemUpload.setOnClickListener(this);
+
+        // set tool bar as the action bar
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+
+        //set logout icon on click listener
+        logoutIcon = findViewById(R.id.imageView_logoutIcon);
+        logoutIcon.setOnClickListener(this);
+
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
@@ -131,6 +146,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //check which button has been clicked and call the relevant method
         if(v.getId() == R.id.floatingActionButton_createItemUpload){
             createItemUploadClicked();
+        } else if (v.getId() == R.id.imageView_logoutIcon) {
+            //call logout method
+            logout();
         }
     }
 

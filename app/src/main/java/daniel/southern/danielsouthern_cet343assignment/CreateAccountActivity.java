@@ -2,6 +2,7 @@ package daniel.southern.danielsouthern_cet343assignment;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -20,6 +21,7 @@ import com.google.firebase.storage.StorageReference;
 
 public class CreateAccountActivity extends AppCompatActivity implements View.OnClickListener{
     //TODO: follow Coding in Flow's tutorial for validating email and password
+    //TODO: Follow coding in Flow's TextWatcher tutorial for disabling buttons
     public static final String EXTRA_EMAIL_ADDRESS = "daniel.southern.danielsouthern_cet343assignment.EXTRA_EMAIL_ADDRESS";
     //tag for logs
     public static final String TAG = "CreateAccountActivity";
@@ -30,12 +32,17 @@ public class CreateAccountActivity extends AppCompatActivity implements View.OnC
     private Button createAccBtn;
     private Button loginBtn;
     private EditText confirmPassword;
+    private Toolbar toolbar;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_account);
+
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         userEmail = findViewById(R.id.editText_UserEmail);
         userPassword = findViewById(R.id.editText_Password);

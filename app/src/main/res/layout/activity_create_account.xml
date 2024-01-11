@@ -6,6 +6,10 @@
     android:layout_height="match_parent"
     tools:context=".CreateAccountActivity">
 
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/toolbar_not_logged_in"/>
+
     <EditText
         android:id="@+id/editText_Password"
         android:layout_width="0dp"

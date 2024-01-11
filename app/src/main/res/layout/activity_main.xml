@@ -6,11 +6,16 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity"
     android:id="@+id/activity_main_layout">
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/toolbar"
+        />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:layout_marginTop="64dp" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/floatingActionButton_createItemUpload"

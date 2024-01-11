@@ -2,6 +2,7 @@ package daniel.southern.danielsouthern_cet343assignment;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -24,6 +25,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private Button createAccBtn;
     private EditText userEmail;
     private EditText userPassword;
+    private Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +34,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
+
+        //create toolbar
+        toolbar =  findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        //hide title as custom one created in layout file
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         //Initialize widgets
         loginBtn = findViewById(R.id.button_Login);
