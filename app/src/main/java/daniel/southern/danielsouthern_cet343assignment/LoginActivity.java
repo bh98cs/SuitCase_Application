@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -26,6 +27,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private EditText userEmail;
     private EditText userPassword;
     private Toolbar toolbar;
+    private ImageView homepageIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +42,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         setSupportActionBar(toolbar);
         //hide title as custom one created in layout file
         getSupportActionBar().setDisplayShowTitleEnabled(false);
+
+        //initialize homepage icon
+        homepageIcon = findViewById(R.id.imageView_homepageIcon);
+        homepageIcon.setOnClickListener(this);
 
         //Initialize widgets
         loginBtn = findViewById(R.id.button_Login);
@@ -68,6 +74,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             //send user to create account page
             Intent intent = new Intent(this, CreateAccountActivity.class);
             //TODO: send any text from editText_UserEmail to CreateAccount page and prepopulate
+            startActivity(intent);
+        } else if (v.getId() == R.id.imageView_homepageIcon) {
+            //send user to homepage
+            Intent intent = new Intent(this, HomePageActivity.class);
             startActivity(intent);
         }
     }

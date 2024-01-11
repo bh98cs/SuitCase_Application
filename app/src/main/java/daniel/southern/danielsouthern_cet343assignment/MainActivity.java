@@ -137,9 +137,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void updateUI(FirebaseUser currentUser) {
-        //send user to login page if not already logged in
+        //send user to homepage if not already logged in
         if(currentUser == null){
-            Intent intent = new Intent(this, LoginActivity.class);
+            Intent intent = new Intent(this, HomePageActivity.class);
             startActivity(intent);
         }
         else{

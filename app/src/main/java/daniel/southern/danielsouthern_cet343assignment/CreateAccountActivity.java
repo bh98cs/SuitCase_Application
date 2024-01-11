@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -33,6 +34,7 @@ public class CreateAccountActivity extends AppCompatActivity implements View.OnC
     private Button loginBtn;
     private EditText confirmPassword;
     private Toolbar toolbar;
+    private ImageView homepageIcon;
 
 
     @Override
@@ -43,6 +45,9 @@ public class CreateAccountActivity extends AppCompatActivity implements View.OnC
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
+
+        homepageIcon = findViewById(R.id.imageView_homepageIcon);
+        homepageIcon.setOnClickListener(this);
 
         userEmail = findViewById(R.id.editText_UserEmail);
         userPassword = findViewById(R.id.editText_Password);
@@ -77,6 +82,9 @@ public class CreateAccountActivity extends AppCompatActivity implements View.OnC
             Intent intent = new Intent(this, LoginActivity.class);
             //send email address to login page
             intent.putExtra(EXTRA_EMAIL_ADDRESS, email);
+            startActivity(intent);
+        } else if (v.getId() == R.id.imageView_homepageIcon) {
+            Intent intent = new Intent(this, HomePageActivity.class);
             startActivity(intent);
         }
     }
