@@ -1,9 +1,14 @@
 package daniel.southern.danielsouthern_cet343assignment;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -43,9 +48,21 @@ import java.util.Map;
 
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, SensorEventListener {
     public static final String TAG = "MainActivity";
     public static final String EXTRA_ITEM_FIREBASE_ID = "daniel.southern.danielsouthern_cet343assignment.ITEM_FIREBASE_ID";
+
+    //for detecting device shaking
+    private SensorManager sensorManager;
+    private Sensor accelerometerSensor;
+    //bool to track whether accelerometer is available
+    private boolean isAccelerometerAvailable;
+    private boolean notFirstTime = false;
+    //variables for shake detection
+    private float currentX, currentY, currentZ, lastX, lastY, lastZ;
+    private float xDifference, yDifference, zDifference;
+    //variable to determine whether device has been shaken
+    private float shakeThreshold = 3f;
     private myAdapter mAdapter;
     private FirebaseFirestore database = FirebaseFirestore.getInstance();
     private CollectionReference announcementRef = database.collection("itemUploads");
@@ -62,11 +79,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Toolbar toolbar;
     //initialise logout button on toolbar
     private ImageView logoutIcon;
+    //to store most recently deleted item incase user wishes to undo delete
+    private ItemUpload deletedItem = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+
+        //check if sensor is available
+        if(sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null){
+            accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+            isAccelerometerAvailable = true;
+            Log.d(TAG, "Accelerometer is available.");
+
+        }
+        else{
+            Log.w(TAG, "Accelerometer is unavailable.");
+            isAccelerometerAvailable = false;
+        }
 
         // Initialize FAB and set OnClickListener
         createItemUpload = findViewById(R.id.floatingActionButton_createItemUpload);
@@ -80,7 +113,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //set logout icon on click listener
         logoutIcon = findViewById(R.id.imageView_logoutIcon);
         logoutIcon.setOnClickListener(this);
-
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
@@ -171,12 +203,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(mAdapter);
-
         new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0,
                 ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
-                //TODO: Make onClick change ItemBought and allow long click to move items
                 return false;
             }
 
@@ -188,20 +218,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     //store the position of the item in a local variable to use for deleting item and
                     //potentially undoing deletion
                     int position = viewHolder.getAdapterPosition();
-                    //store the deleted item in a local variable incase user wants to undo delete
-                    ItemUpload deletedItem = mAdapter.getItem(position);
+                    //store the deleted item incase user wants to undo delete
+                    deletedItem = mAdapter.getItem(position);
                     //delete item from recyclerview and FireStore
                     mAdapter.deleteItem(position);
-                    //create Snackbar to provide user feedback and give option to undo deletion
-                    Snackbar snackbar = Snackbar.make(relativeLayout, "Item Deleted", Snackbar.LENGTH_LONG)
-                            .setAction("UNDO", new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    //undo the deletion
-                                    undoDelete(deletedItem);
-                                }
-                            });
-                    snackbar.show();
+
+                    optionToUndoDelete();
+
+
                 } else if (direction == 8) {
                     //user swipes right to edit
                     Intent intent = new Intent(MainActivity.this, CreateOrEditActivity.class);
@@ -229,48 +253,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }).attachToRecyclerView(recyclerView);
 
-        mAdapter.setOnItemClickListener(new myAdapter.OnItemClickListener() {
+        mAdapter.setOnItemDelegateClickListener(new myAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick(DocumentSnapshot documentSnapshot, int position) {
-                ItemUpload itemUpload = documentSnapshot.toObject(ItemUpload.class);
-                if(itemUpload != null){
-                    mAdapter.changeIsBought(itemUpload.getItemBought(), position);
-                }
-                else{
-                    //user feedback incase itemUpload is null which means no item was clicked
-                    Toast.makeText(MainActivity.this, "Please click an item to mark as bought.", Toast.LENGTH_SHORT).show();
-                }
+            public void onItemDelegateClick(DocumentSnapshot documentSnapshot, int position) {
+                sendSMS(documentSnapshot);
             }
         });
 
         mAdapter.setOnItemLongClickListener(new myAdapter.OnItemLongClickListener(){
             @Override
             public void onItemLongClick(DocumentSnapshot documentSnapshot, int position) {
-                //get title and link of item selected
-                String itemTitle = documentSnapshot.getString("itemTitle");
-                String itemLink = documentSnapshot.getString("itemLink");
-                String itemDesc = documentSnapshot.getString("itemDesc");
-                String itemPrice = documentSnapshot.getString("itemPrice");
-
-                //check item title and link are not null
-                if(itemTitle != null && itemLink != null){
-                    String smsMessage = createSMSMessage(itemTitle, itemDesc, itemPrice, itemLink);
-                    //TODO: Fix bug as app crashes when returned to from sending SMS
-                    //set up intent to send item as SMS
-                    Intent sendSMSIntent = new Intent();
-                    sendSMSIntent.setAction(Intent.ACTION_SEND);
-                    sendSMSIntent.putExtra(Intent.EXTRA_TEXT, smsMessage);
-                    sendSMSIntent.setType("text/plain");
-
-                    startActivity(sendSMSIntent);
-                }
-                else{
-                    //user feedback to advise item must have a valid title and link
-                    Toast.makeText(MainActivity.this, "Please select an item with a valid title and link.", Toast.LENGTH_LONG).show();
-                }
-
+                //change item's isBought boolean
+                changeIsBought(documentSnapshot, position);
             }
         });
+    }
+
+    private void optionToUndoDelete() {
+        RelativeLayout layout = findViewById(R.id.activity_main_layout);
+        //create Snackbar to provide user feedback and give option to undo deletion
+        Snackbar snackbar = Snackbar.make(layout, "Undo Delete", Snackbar.LENGTH_LONG)
+                .setAction("UNDO", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        //undo the deletion
+                        undoDelete();
+                    }
+                });
+        snackbar.show();
     }
 
     private String createSMSMessage(String itemTitle, String itemDesc, String itemPrice, String itemLink) {
@@ -293,8 +303,63 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return message;
     }
 
+    //method to delegate item through SMS
+    private void sendSMS(DocumentSnapshot documentSnapshot){
+        //get title and link of item selected
+        String itemTitle = documentSnapshot.getString("itemTitle");
+        String itemLink = documentSnapshot.getString("itemLink");
+        String itemDesc = documentSnapshot.getString("itemDesc");
+        String itemPrice = documentSnapshot.getString("itemPrice");
+
+        //check item title and link are not null
+        if(itemTitle != null && itemLink != null){
+            String smsMessage = createSMSMessage(itemTitle, itemDesc, itemPrice, itemLink);
+            //TODO: Fix bug as app crashes when returned to from sending SMS
+            //set up intent to send item as SMS
+            Intent sendSMSIntent = new Intent();
+            sendSMSIntent.setAction(Intent.ACTION_SEND);
+            sendSMSIntent.putExtra(Intent.EXTRA_TEXT, smsMessage);
+            sendSMSIntent.setType("text/plain");
+
+            startActivity(sendSMSIntent);
+        }
+        else{
+            //user feedback to advise item must have a valid title and link
+            Toast.makeText(MainActivity.this, "Please select an item with a valid title and link.", Toast.LENGTH_LONG).show();
+        }
+
+    }
+
+    private void changeIsBought(DocumentSnapshot  documentSnapshot, int position){
+
+        ItemUpload itemUpload = documentSnapshot.toObject(ItemUpload.class);
+        if(itemUpload != null){
+            //get original bool value
+            boolean isItemBought = itemUpload.getItemBought();
+            mAdapter.changeIsBought(isItemBought, position);
+            //original bool value was false therefore is being changed to true
+            if(!isItemBought){
+                Toast.makeText(this, itemUpload.getItemTitle() + " Marked as Bought", Toast.LENGTH_SHORT).show();
+            }
+            //original bool value was true therefore being changed to false
+            else{
+                Toast.makeText(this, itemUpload.getItemTitle() + " Changed to not Bought", Toast.LENGTH_SHORT).show();
+            }
+        }
+        else{
+            //user feedback incase itemUpload is null which means no item was clicked
+            Toast.makeText(MainActivity.this, "Please click an item to mark as bought.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     //method to undo a deletion of an item
-    private void undoDelete(ItemUpload deletedItem) {
+    private void undoDelete() {
+        //check if an item has been deleted in this session
+        if(deletedItem == null){
+            Toast.makeText(this, "Unable to Undo. No items deleted in this session.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         //re-upload the item to FireStore
         Map<String, Object> itemUpload = new HashMap<>();
         itemUpload.put("itemTitle", deletedItem.getItemTitle());
@@ -311,6 +376,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onSuccess(DocumentReference documentReference) {
                         Toast.makeText(MainActivity.this, "Undo Successful", Toast.LENGTH_SHORT).show();
+                        //set deleted item back to null so that it can not be add back again
+                        deletedItem = null;
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -322,4 +389,56 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //set sensor event listener if accelerometer is available
+        if(isAccelerometerAvailable){
+            sensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        //check if sensor was available
+        if(isAccelerometerAvailable){
+            //unregister the listener
+            sensorManager.unregisterListener(this);
+        }
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        //
+        currentX = event.values[0];
+        currentY = event.values[1];
+        currentZ = event.values[2];
+
+        if(notFirstTime){
+            //get difference between last and current X, Y, Z values
+            xDifference = Math.abs(lastX - currentX);
+            yDifference = Math.abs(lastY - currentY);
+            zDifference = Math.abs(lastZ = currentZ);
+
+            //check that device has been shaken sufficiently
+            if((xDifference > shakeThreshold && yDifference > shakeThreshold) ||
+            (xDifference > shakeThreshold && zDifference > shakeThreshold) ||
+                    (yDifference > shakeThreshold && zDifference > shakeThreshold)){
+                optionToUndoDelete();
+            }
+        }
+
+        lastX = currentX;
+        lastY = currentY;
+        lastZ = currentZ;
+
+        notFirstTime = true;
+
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
 }

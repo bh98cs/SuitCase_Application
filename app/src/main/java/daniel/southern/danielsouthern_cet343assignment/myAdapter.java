@@ -78,8 +78,9 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
         getSnapshots().getSnapshot(position).getReference().set(itemUpload, SetOptions.merge());
     }
 
+
     public interface OnItemClickListener{
-        void onItemClick(DocumentSnapshot documentSnapshot,  int position);
+        void onItemDelegateClick(DocumentSnapshot documentSnapshot,  int position);
     }
     public interface OnItemLongClickListener{
         void onItemLongClick(DocumentSnapshot documentSnapshot,  int position);
@@ -89,7 +90,7 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
         this.longClickListener = longClickListener;
     }
 
-    public void setOnItemClickListener(OnItemClickListener listener){
+    public void setOnItemDelegateClickListener(OnItemClickListener listener){
         this.listener = listener;
     }
 
@@ -100,6 +101,7 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
         TextView textViewLink;
         TextView textViewPrice;
         ImageView imageViewImage;
+        ImageView delegateItem;
         //item background to change colour to indicate whether it has been bought or not
         CardView itemBackground;
 
@@ -111,14 +113,13 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
             textViewPrice = itemView.findViewById(R.id.textView_itemPrice);
             imageViewImage = itemView.findViewById(R.id.imageView_itemImage);
             itemBackground = itemView.findViewById(R.id.cardView);
-
-            itemView.setOnClickListener(new View.OnClickListener() {
+            delegateItem = itemView.findViewById(R.id.imageView_delegateIcon);
+            delegateItem.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     int position = getAdapterPosition();
-                    //validation
                     if(position != RecyclerView.NO_POSITION && listener != null){
-                        listener.onItemClick(getSnapshots().getSnapshot(position), position);
+                        listener.onItemDelegateClick(getSnapshots().getSnapshot(position), position);
                     }
                 }
             });
