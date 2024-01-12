@@ -3,9 +3,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/blue"
     android:elevation="4dp"
-    app:popupTheme="@style/Theme.AppCompat.DayNight.DarkActionBar">
+    app:popupTheme="@style/Theme.DanielSouthern_CET343Assignment"
+    android:background="?attr/colorPrimary">
 
     <RelativeLayout
         android:layout_width="wrap_content"
@@ -20,15 +20,16 @@
             android:layout_toEndOf="@id/imageView_suitcaseIcon"
             android:text="Suitcase"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            android:textColor="@color/white"
-            android:textSize="34sp" />
+            android:textSize="34sp"
+            android:textColor="?attr/colorOnPrimary"/>
 
         <ImageView
             android:id="@+id/imageView_suitcaseIcon"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_centerVertical="true"
-            android:src="@drawable/suitcase_logo_icon" />
+            android:src="@drawable/suitcase_logo_icon"
+            app:tint="?attr/colorOnPrimary" />
 
         <ImageView
             android:id="@+id/imageView_homepageIcon"
@@ -37,7 +38,8 @@
             android:layout_marginEnd="16dp"
             android:layout_centerVertical="true"
             android:layout_alignParentEnd="true"
-            android:src="@drawable/homepage_icon" />
+            android:src="@drawable/homepage_icon"
+            app:tint="?attr/colorOnPrimary" />
 
     </RelativeLayout>
 

@@ -45,6 +45,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/suitcase_logo_icon"
-        app:tint="@color/black" />
+        app:srcCompat="@drawable/suitcase_logo_icon" />
 </androidx.constraintlayout.widget.ConstraintLayout>

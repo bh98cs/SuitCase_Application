@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.color.MaterialColors;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
@@ -49,6 +50,9 @@ import java.util.Map;
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SensorEventListener {
+
+    //TODO: using https://developer.android.com/jetpack/compose/designsystems/material3
+    // add a custom colour theme to the add (don't bother with dynamic) use colours of a sunset 
     public static final String TAG = "MainActivity";
     public static final String EXTRA_ITEM_FIREBASE_ID = "daniel.southern.danielsouthern_cet343assignment.ITEM_FIREBASE_ID";
 
@@ -242,11 +246,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
                 //create background colors and icons to display when swiping items using RecyclerViewSwipeDecorator library
                 new RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
-                        //TODO: this color will need to be changed
-                        .addSwipeLeftBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.red))
-                        .addSwipeLeftActionIcon(R.drawable.baseline_delete)
-                        .addSwipeRightBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.blue))
-                        .addSwipeRightActionIcon(R.drawable.baseline_edit)
+                        .addSwipeLeftBackgroundColor(MaterialColors.getColor(recyclerView,com.google.android.material.R.attr.colorError))
+                        .addSwipeLeftActionIcon(R.drawable.baseline_delete).setSwipeLeftActionIconTint(MaterialColors.getColor(recyclerView, com.google.android.material.R.attr.colorOnError))
+                        .addSwipeRightBackgroundColor(MaterialColors.getColor(recyclerView, com.google.android.material.R.attr.colorTertiary))
+                        .addSwipeRightActionIcon(R.drawable.baseline_edit).setSwipeRightActionIconTint(MaterialColors.getColor(recyclerView, com.google.android.material.R.attr.colorOnTertiary))
                         .create()
                         .decorate();
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
