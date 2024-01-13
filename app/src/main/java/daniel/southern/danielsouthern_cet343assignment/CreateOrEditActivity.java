@@ -43,14 +43,18 @@ import java.util.Map;
 
 public class CreateOrEditActivity extends AppCompatActivity implements View.OnClickListener {
 
+    //tag for logs on this activity
     public static final String TAG = "CreateOrEditActivity";
+    //declare instance of FireBase auth to retrieve user details
     private FirebaseAuth mAuth;
+    //declare instance to store current user details
     private FirebaseUser currentUser;
+    //declare instances of FireBase database references for uploading data to
     private FirebaseStorage storage = FirebaseStorage.getInstance();
     private FirebaseFirestore database = FirebaseFirestore.getInstance();
     private StorageReference storageRef;
     private StorageReference fileReference;
-    //reference for editing an item
+    //reference for the item selected for editing
     private DocumentReference editItemRef;
 
     //variables for viewing and saving item image
@@ -99,6 +103,7 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
         productLink = findViewById(R.id.editText_productLink);
         productPrice = findViewById(R.id.editText_productPrice);
 
+        //set on click listeners for activity
         productImageView = findViewById(R.id.imageView_productImage);
         productImageView.setOnClickListener(this);
 
@@ -116,6 +121,7 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
 
         //get intent that started activity
         Intent intent = getIntent();
+        //store document reference for item being edited
         String firebaseDocId = intent.getStringExtra(MainActivity.EXTRA_ITEM_FIREBASE_ID);
 
         //check if intent to this activity passed a document ID
@@ -134,8 +140,11 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
         editItemRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                //check if item has been successfully retrieved
                 if(task.isSuccessful()){
+                    //get result of task
                     DocumentSnapshot document = task.getResult();
+                    //check if the item being edited exists within the database
                     if(document.exists()){
                         //document retrieved successfully
                         Log.i(TAG, "FireBase Document retrieved!");
@@ -164,7 +173,9 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
                         Log.w(TAG, "Document does not exist.");
                     }
                 }else {
+                    //unable to retrieve data from Firebase Database
                     Log.e(TAG, "Failed to retrieve FireBase Document.", task.getException());
+                    Toast.makeText(CreateOrEditActivity.this, "Unable to retrieve data.", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -180,13 +191,20 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
 
     @Override
     public void onClick(View v) {
-        //check which button has been clicked and call relative method
+        //save button has been clicked
         if(v.getId() == R.id.button_save){
+            //call method to save item details to database
             saveItem();
 
-        } else if (v.getId() == R.id.button_cancelAction) {
+        }
+        //cancel button clicked
+        else if (v.getId() == R.id.button_cancelAction) {
+            //call method to handle cancel button being clicked
             cancelActionClicked();
-        } else if (v.getId() == R.id.button_loadImage || v.getId() == R.id.imageView_productImage) {
+        }
+        //load image button or imageview clicked
+        else if (v.getId() == R.id.button_loadImage || v.getId() == R.id.imageView_productImage) {
+            //method to allow user to select new image for item
             selectImageFromAlbum();
         }
     }
@@ -239,10 +257,14 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
 
     private void selectImageFromAlbum() {
         try{
+            //redirect user to their photo album to select and image
             Intent intent = new Intent(Intent.ACTION_PICK, EXTERNAL_CONTENT_URI);
+            //get result from users photo album
             startActivityForResult(intent, RESULT_PICK_IMAGE);
         } catch (Exception e) {
+            //print error in log if user cannot be directed to their saved photos
             Log.e(TAG, "Error selecting image.", e);
+            Toast.makeText(this, "Unable to access device's photos.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -251,10 +273,14 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
         super.onActivityResult(requestCode, resultCode, data);
         //check if result is for the pick image request and check data retrieved is not null
         if(requestCode == RESULT_PICK_IMAGE && resultCode == RESULT_OK && data != null && data.getData() != null){
+            //get Uri of image selected from device's files
             productImageUri = data.getData();
+            //load image into imageView using Picasso library
             Picasso.get().load(productImageUri).into(productImageView);
         }else{
+            //log error if unable to load image into ImageView
             Log.e(TAG, "Error retrieving image from gallery.");
+            Toast.makeText(this, "Unable to retrieve image from Device.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -319,6 +345,7 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
                                     .addOnFailureListener(new OnFailureListener() {
                                         @Override
                                         public void onFailure(@NonNull Exception e) {
+                                            //log error if unable to retrieve download Url
                                             Log.e(TAG, "onFailure: Failed to retrieve download Url.", e);
                                         }
                                     });
@@ -327,6 +354,7 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
                     .addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
+                            //log error if unable to upload image to FireStore
                             Log.e(TAG, "onFailure: Unable to upload Image", e);
                         }
                     });
@@ -344,12 +372,13 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
     }
 
     private void saveItemToDataBase() {
+        //store user input in string variables
         String title = productTitle.getText().toString().trim();
         String desc = productDesc.getText().toString().trim();
         String link = productLink.getText().toString().trim();
         String price = productPrice.getText().toString().trim();
 
-        //create new ItemUpload
+        //create new ItemUpload with user's input
         Map<String, Object> itemUpload = new HashMap<>();
         itemUpload.put("itemTitle", title);
         itemUpload.put("itemDesc", desc);
@@ -366,8 +395,8 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                     @Override
                     public void onSuccess(DocumentReference documentReference) {
-                        Log.d("FSLog", "DocumentSnapshot added with ID: " + documentReference.getId());
-                        Log.d(TAG, "Item added with Url: " + itemUpload.get("imageDownloadUrl"));
+                        //successfully added new item to database
+                        Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.getId());
                         //user feedback to confirm new item has been added
                         Toast.makeText(CreateOrEditActivity.this, "New Item added!", Toast.LENGTH_LONG).show();
                         //return back to main activity to view all Items
@@ -378,7 +407,7 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.w("FSLog", "Error adding document", e);
+                        Log.w(TAG, "Error adding document", e);
                         //user feedback to advise was unable to save new item
                         Toast.makeText(CreateOrEditActivity.this, "Something went wrong", Toast.LENGTH_LONG).show();
                     }
@@ -386,6 +415,7 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
 
     }
 
+    //method to retrieve file extension for an image
     private String getFileExtension(Uri uri){
         ContentResolver contentResolver = getContentResolver();
         MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();

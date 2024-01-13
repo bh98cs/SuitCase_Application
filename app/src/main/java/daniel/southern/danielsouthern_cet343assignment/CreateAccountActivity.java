@@ -23,11 +23,14 @@ import com.google.firebase.storage.StorageReference;
 public class CreateAccountActivity extends AppCompatActivity implements View.OnClickListener{
     //TODO: follow Coding in Flow's tutorial for validating email and password
     //TODO: Follow coding in Flow's TextWatcher tutorial for disabling buttons
+
+    //constant variable for sending contents of email address field to LoginActivity
     public static final String EXTRA_EMAIL_ADDRESS = "daniel.southern.danielsouthern_cet343assignment.EXTRA_EMAIL_ADDRESS";
     //tag for logs
     public static final String TAG = "CreateAccountActivity";
+    //declare instance of FireBase Auth
     private FirebaseAuth mAuth;
-    //initialise views
+    //declare instances of views
     private EditText userEmail;
     private EditText userPassword;
     private Button createAccBtn;
@@ -42,13 +45,16 @@ public class CreateAccountActivity extends AppCompatActivity implements View.OnC
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_account);
 
+        //set toolbar as activities actionbar
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
+        //set on click listener for HomePage icon
         homepageIcon = findViewById(R.id.imageView_homepageIcon);
         homepageIcon.setOnClickListener(this);
 
+        //assign variables to EditText views and Buttons
         userEmail = findViewById(R.id.editText_UserEmail);
         userPassword = findViewById(R.id.editText_Password);
         confirmPassword = findViewById(R.id.editText_confirmPassword);
@@ -58,7 +64,7 @@ public class CreateAccountActivity extends AppCompatActivity implements View.OnC
         //initialise firebase auth
         mAuth = FirebaseAuth.getInstance();
 
-        //set onClick listeners
+        //set onClick listeners for buttons
         loginBtn.setOnClickListener(this);
         createAccBtn.setOnClickListener(this);
     }
@@ -67,23 +73,32 @@ public class CreateAccountActivity extends AppCompatActivity implements View.OnC
     public void onClick(View v) {
         //get user email outside of if statement as needed for both scenarios
         String email = userEmail.getText().toString().trim();
+        //user clicks to create account
         if(v.getId() == R.id.button_CreateAccount){
+            //store contents of the two password boxes in variables
             String password = userPassword.getText().toString();
             String password2 = confirmPassword.getText().toString();
-            //create account
+            //check if the two passwords match (to make sure user hasn't miss typed)
             if(passwordsMatch(password, password2)){
+                //create new user if passwords match
                 createNewUser(email, password);
             }
             else {
+                //user feedback to advise two password boxes do not match
                 Toast.makeText(this, "Passwords do not match.", Toast.LENGTH_LONG).show();
             }
-        } else if (v.getId() == R.id.button_Login) {
+        }
+        //login button has been clicked
+        else if (v.getId() == R.id.button_Login) {
             //send user to login page
             Intent intent = new Intent(this, LoginActivity.class);
-            //send email address to login page
+            //send contents of email address box to login page
             intent.putExtra(EXTRA_EMAIL_ADDRESS, email);
             startActivity(intent);
-        } else if (v.getId() == R.id.imageView_homepageIcon) {
+        }
+        //homepage icon clicked
+        else if (v.getId() == R.id.imageView_homepageIcon) {
+            //send user back to homepage
             Intent intent = new Intent(this, HomePageActivity.class);
             startActivity(intent);
         }
@@ -91,17 +106,19 @@ public class CreateAccountActivity extends AppCompatActivity implements View.OnC
 
     //create new user and save credentials to Firebase
     private void createNewUser(String email, String password){
+        //create new user using email and password
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
+                        //check if task was successful
                         if(task.isSuccessful()){
-                            //sign in success, go to main page
+                            //sign up success, go to main page
                             Log.d(TAG, "createUserWithEmail:success");
                             Intent intent = new Intent(CreateAccountActivity.this, MainActivity.class);
                             startActivity(intent);
                         }else {
-                            //sign in fails
+                            //sign up fails print error in the log
                             Log.w(TAG, "createUserWithEmail:failure", task.getException());
                             Toast.makeText(CreateAccountActivity.this, "Authentication failed.",
                                     Toast.LENGTH_LONG).show();
