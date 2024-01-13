@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.android.material.color.MaterialColors;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.squareup.picasso.Picasso;
@@ -51,7 +53,12 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
         //if item is marked as being bought update color
         if(model.getItemBought()){
             //TODO: change this to a color suiting the color scheme
-            holder.itemBackground.setBackgroundColor(Color.GREEN);
+            holder.itemBackground.setBackgroundColor(MaterialColors.getColor(holder.itemBackground, com.google.android.material.R.attr.colorTertiary));
+            holder.textViewTitle.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnTertiary));
+            holder.textViewDesc.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnTertiary));
+            holder.textViewLink.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnTertiary));
+            holder.textViewPrice.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnTertiary));
+            holder.delegateItem.setColorFilter(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnTertiary));
         }
         Picasso.get()
                 .load(model.getImageDownloadUrl())
@@ -103,7 +110,7 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
         ImageView imageViewImage;
         ImageView delegateItem;
         //item background to change colour to indicate whether it has been bought or not
-        CardView itemBackground;
+        RelativeLayout itemBackground;
 
         public ItemUploadHolder(@NonNull View itemView) {
             super(itemView);
@@ -112,7 +119,7 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
             textViewLink = itemView.findViewById(R.id.text_view_itemLink);
             textViewPrice = itemView.findViewById(R.id.textView_itemPrice);
             imageViewImage = itemView.findViewById(R.id.imageView_itemImage);
-            itemBackground = itemView.findViewById(R.id.cardView);
+            itemBackground = itemView.findViewById(R.id.itemCard);
             delegateItem = itemView.findViewById(R.id.imageView_delegateIcon);
             delegateItem.setOnClickListener(new View.OnClickListener() {
                 @Override

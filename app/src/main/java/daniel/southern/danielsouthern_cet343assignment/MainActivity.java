@@ -50,9 +50,6 @@ import java.util.Map;
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SensorEventListener {
-
-    //TODO: using https://developer.android.com/jetpack/compose/designsystems/material3
-    // add a custom colour theme to the add (don't bother with dynamic) use colours of a sunset 
     public static final String TAG = "MainActivity";
     public static final String EXTRA_ITEM_FIREBASE_ID = "daniel.southern.danielsouthern_cet343assignment.ITEM_FIREBASE_ID";
 

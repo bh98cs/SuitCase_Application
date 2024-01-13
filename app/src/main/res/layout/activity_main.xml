@@ -10,12 +10,18 @@
         android:id="@+id/toolbar"
         layout="@layout/toolbar"
         />
+    <View
+        android:id="@+id/toolbar_shadow"
+        android:layout_width="match_parent"
+        android:layout_height="5dp"
+        android:layout_below="@+id/toolbar"
+        android:background="@drawable/toolbar_drop_shadow"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="64dp" />
+        android:layout_below="@+id/toolbar_shadow" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/floatingActionButton_createItemUpload"
@@ -26,6 +32,9 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         android:clickable="true"
-        app:srcCompat="@drawable/baseline_add_24" />
+        android:backgroundTint="?attr/colorTertiaryContainer"
+        app:srcCompat="@drawable/baseline_add_24"
+        app:tint="?attr/colorOnTertiaryContainer"
+        />
 
 </RelativeLayout>

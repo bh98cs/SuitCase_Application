@@ -8,11 +8,14 @@
 
     <Button
         android:id="@+id/button_cancelAction"
+        android:theme="@style/ButtonBorder"
         android:layout_width="108dp"
         android:layout_height="64dp"
         android:layout_marginEnd="60dp"
         android:layout_marginTop="60dp"
         android:text="Cancel"
+        android:textColor="?attr/colorPrimary"
+        android:backgroundTint="?attr/colorSurface"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editText_productPrice" />
 
@@ -43,7 +46,7 @@
     <EditText
         android:id="@+id/editText_productDesc"
         android:layout_width="wrap_content"
-        android:layout_height="48dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="28dp"
         android:ems="10"
         android:gravity="start|top"
@@ -84,6 +87,8 @@
         android:layout_marginEnd="60dp"
         android:layout_marginBottom="32dp"
         android:text="Select Image"
+        android:textColor="?attr/colorOnSecondaryContainer"
+        android:backgroundTint="?attr/colorSecondaryContainer"
         app:layout_constraintBottom_toTopOf="@+id/editText_productTitle"
         app:layout_constraintEnd_toEndOf="parent" />
 

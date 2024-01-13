@@ -8,7 +8,7 @@
     </style>
 
     <style name="ButtonBorder" parent="Theme.DanielSouthern_CET343Assignment">
-        <item name="strokeColor">?attr/colorOutline</item>
+        <item name="strokeColor">?attr/colorPrimary</item>
         <item name="strokeWidth">2dp</item>
     </style>
 </resources>

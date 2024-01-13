@@ -1,7 +1,6 @@
 package daniel.southern.danielsouthern_cet343assignment;
 
 public class ItemUpload {
-    //TODO: Add code to handle uploading item image
     private String itemTitle;
     private String itemDesc;
     private String itemLink;

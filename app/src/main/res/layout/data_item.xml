@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView
-    android:id="@+id/cardView"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -8,13 +7,15 @@
     android:layout_height="wrap_content"
     android:layout_marginEnd="8dp"
     android:layout_marginStart="8dp"
-    android:layout_marginTop="8dp">
+    android:layout_marginTop="8dp"
+    >
 
     <RelativeLayout
         android:id="@+id/itemCard"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="8dp">
+        android:padding="8dp"
+        android:background="?attr/colorSecondaryContainer">
 
         <TextView
             android:id="@+id/text_view_itemTitle"
@@ -24,6 +25,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="Item Title"
+            android:textColor="?attr/colorOnSecondaryContainer"
             android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
         <TextView
@@ -33,6 +35,7 @@
             android:layout_below="@+id/text_view_itemTitle"
             android:layout_toEndOf="@+id/imageView_itemImage"
             android:text="Item Description."
+            android:textColor="?attr/colorOnSecondaryContainer"
             android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
         <TextView
@@ -41,7 +44,8 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/text_view_itemDesc"
             android:layout_toEndOf="@id/imageView_itemImage"
-            android:text="Item Link" />
+            android:text="Item Link"
+            android:textColor="?attr/colorOnSecondaryContainer"/>
 
         <ImageView
             android:id="@+id/imageView_itemImage"
@@ -58,7 +62,8 @@
             android:layout_alignTop="@+id/imageView_itemImage"
             android:layout_alignParentEnd="true"
             android:layout_marginEnd="8dp"
-            android:text="TextView" />
+            android:text="TextView"
+            android:textColor="?attr/colorOnSecondaryContainer"/>
 
         <ImageView
             android:id="@+id/imageView_delegateIcon"
@@ -66,7 +71,8 @@
             android:layout_height="48dp"
             android:layout_toEndOf="@+id/text_view_itemDesc"
             android:layout_below="@+id/textView_itemPrice"
-            app:srcCompat="@drawable/delegate_icon" />
+            app:srcCompat="@drawable/delegate_icon"
+            app:tint="?attr/colorOnSecondaryContainer" />
 
     </RelativeLayout>
 
