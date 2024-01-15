@@ -27,12 +27,14 @@ import java.util.Map;
 
 public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.ItemUploadHolder> {
 
+    //declare listener for clicking on an item
     private OnItemClickListener listener;
+    //declare listener for long click on an item
     private OnItemLongClickListener longClickListener;
     //key to change whether item is to be marked as bought
     public static final String KEY_ITEM_BOUGHT = "itemBought";
 
-
+    //constructor for adapter
     public myAdapter(@NonNull FirestoreRecyclerOptions<ItemUpload> options){
         super(options);
     }
@@ -46,20 +48,26 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
 
     @Override
     protected void onBindViewHolder(@NonNull ItemUploadHolder holder, int position, @NonNull ItemUpload model) {
+        //set text for items title using ItemUpload title getter
         holder.textViewTitle.setText(model.getItemTitle());
+        //set text for items description using ItemUpload description getter
         holder.textViewDesc.setText(model.getItemDesc());
+        //set text for items link using ItemUpload link getter
         holder.textViewLink.setText(model.getItemLink());
+        //set text for items price using ItemUpload price getter
         holder.textViewPrice.setText("£"+model.getItemPrice());
         //if item is marked as being bought update color
         if(model.getItemBought()){
-            //TODO: change this to a color suiting the color scheme
+            //change background color of item's card to indicate it has been bought
             holder.itemBackground.setBackgroundColor(MaterialColors.getColor(holder.itemBackground, com.google.android.material.R.attr.colorTertiary));
+            //update text color on the card to provide sufficient contrast with new background color
             holder.textViewTitle.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnTertiary));
             holder.textViewDesc.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnTertiary));
             holder.textViewLink.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnTertiary));
             holder.textViewPrice.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnTertiary));
             holder.delegateItem.setColorFilter(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnTertiary));
         }
+        //load the saved image for the item using picasso library
         Picasso.get()
                 .load(model.getImageDownloadUrl())
                 .fit()
@@ -68,12 +76,13 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
     }
 
     public void deleteItem(int position){
-        //reference to FireStore document
+        //delete item from Firebase
         getSnapshots().getSnapshot(position).getReference().delete();
     }
 
     //method to return item's FireBase doc ID
     public String getItemFirebaseId(int position){
+        //return the id of the item at the specified position in the recyclerview
         return getSnapshots().getSnapshot(position).getReference().getId();
     }
 
@@ -86,23 +95,28 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
     }
 
 
+    //Interface for clicking on an item
     public interface OnItemClickListener{
         void onItemDelegateClick(DocumentSnapshot documentSnapshot,  int position);
     }
+    //interface for a long click on an item
     public interface OnItemLongClickListener{
         void onItemLongClick(DocumentSnapshot documentSnapshot,  int position);
 
     }
+    //constructor for long click listener
     public void setOnItemLongClickListener(OnItemLongClickListener longClickListener){
         this.longClickListener = longClickListener;
     }
 
+    //constructor for clicking to delegate an item
     public void setOnItemDelegateClickListener(OnItemClickListener listener){
         this.listener = listener;
     }
 
 
     class ItemUploadHolder extends RecyclerView.ViewHolder{
+        //declare views containing item details
         TextView textViewTitle;
         TextView textViewDesc;
         TextView textViewLink;
@@ -114,6 +128,7 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
 
         public ItemUploadHolder(@NonNull View itemView) {
             super(itemView);
+            //initialise views
             textViewTitle = itemView.findViewById(R.id.text_view_itemTitle);
             textViewDesc = itemView.findViewById(R.id.text_view_itemDesc);
             textViewLink = itemView.findViewById(R.id.text_view_itemLink);
@@ -121,22 +136,29 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
             imageViewImage = itemView.findViewById(R.id.imageView_itemImage);
             itemBackground = itemView.findViewById(R.id.itemCard);
             delegateItem = itemView.findViewById(R.id.imageView_delegateIcon);
+            //set on click listener for clicking the delegate icon
             delegateItem.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    //get position of the item selected to delegate
                     int position = getAdapterPosition();
+                    //check listener and item position are valid
                     if(position != RecyclerView.NO_POSITION && listener != null){
+                        //call method to handle delegate icon being clicked
                         listener.onItemDelegateClick(getSnapshots().getSnapshot(position), position);
                     }
                 }
             });
 
+            //set long click listener
             itemView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
+                    //get position of item in recycler view
                     int position = getAdapterPosition();
-                    //validation
+                    //check there is a valid position and long click listener
                     if(position != RecyclerView.NO_POSITION && longClickListener != null){
+                        //call method to handle long click action
                         longClickListener.onItemLongClick(getSnapshots().getSnapshot(position), position);
                     }
                     return true;

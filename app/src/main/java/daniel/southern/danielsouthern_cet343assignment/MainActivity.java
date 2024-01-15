@@ -50,24 +50,32 @@ import java.util.Map;
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SensorEventListener {
+    //TAG for log on this Activity
     public static final String TAG = "MainActivity";
+    //for intenting Firebase ID of an item
     public static final String EXTRA_ITEM_FIREBASE_ID = "daniel.southern.danielsouthern_cet343assignment.ITEM_FIREBASE_ID";
 
-    //for detecting device shaking
+    //declare Sensor and SensorManager for detecting device shaking
     private SensorManager sensorManager;
     private Sensor accelerometerSensor;
     //bool to track whether accelerometer is available
     private boolean isAccelerometerAvailable;
+    //bool to track whether Accelerometer is detecting the first movements of the device
     private boolean notFirstTime = false;
-    //variables for shake detection
+    //variables for shake detection, tracking coordinates of the device
     private float currentX, currentY, currentZ, lastX, lastY, lastZ;
     private float xDifference, yDifference, zDifference;
-    //variable to determine whether device has been shaken
+    //variable to determine whether device has been shaken sufficiently
     private float shakeThreshold = 3f;
+    //declare adapter for RecyclerView
     private myAdapter mAdapter;
+    //get instance of FireStore to access saved images
     private FirebaseFirestore database = FirebaseFirestore.getInstance();
+    //get collection reference for all itemUploads
     private CollectionReference announcementRef = database.collection("itemUploads");
+    //declare instance of Firebase auth
     private FirebaseAuth mAuth;
+    //instance of Firebase User to retrieve details of current user
     private FirebaseUser currentUser;
     // Create a Cloud Storage reference from the app
     private FirebaseStorage storage = FirebaseStorage.getInstance();
@@ -88,17 +96,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //set sensor manager
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
-        //check if sensor is available
+        //check if accelerometer is available
         if(sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null){
+            //initialise sensor
             accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+            //set boolean to true to indicate sensor is available
             isAccelerometerAvailable = true;
             Log.d(TAG, "Accelerometer is available.");
 
         }
         else{
             Log.w(TAG, "Accelerometer is unavailable.");
+            //set boolean to false to disable shake gesture
             isAccelerometerAvailable = false;
         }
 
@@ -127,23 +139,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onStart() {
         super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
+        //start adapter when activity starts
         mAdapter.startListening();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        //stop adapter when activity stops
         mAdapter.stopListening();
     }
 
     private void updateUI(FirebaseUser currentUser) {
         //send user to homepage if not already logged in
         if(currentUser == null){
+            //current user is null therefore they are not logged in. Send them to homepage
             Intent intent = new Intent(this, HomePageActivity.class);
             startActivity(intent);
         }
         else{
+            //user is logged in - call method to set up Recycler view
             setUpRecyclerView();
         }
     }
@@ -155,31 +170,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
+                                //sign user out
                                 mAuth.signOut();
                                 Log.i(TAG, "User Signed out");
-                                //send user back to login page
-                                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                                //send user back to home page
+                                Intent intent = new Intent(MainActivity.this, HomePageActivity.class);
                                 startActivity(intent);
                             }
                         })
                         .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                //do nothing
+                                //do nothing as user does not want to log out
                             }
                         });
 
         AlertDialog dialog = builder.create();
+        //show alert dialog to request confirmation of user logging out
         dialog.show();
 
     }
 
     @Override
     public void onClick(View v) {
-        //check which button has been clicked and call the relevant method
+        //FAB  button to add a new item is clicked
         if(v.getId() == R.id.floatingActionButton_createItemUpload){
+            //call method to handle user action
             createItemUploadClicked();
-        } else if (v.getId() == R.id.imageView_logoutIcon) {
+        }
+        //logout is clicked
+        else if (v.getId() == R.id.imageView_logoutIcon) {
             //call logout method
             logout();
         }
@@ -196,14 +216,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //retrieve data with the same associated email as current user
         Query query = announcementRef.whereEqualTo("email", mAuth.getCurrentUser().getEmail());
 
-        FirestoreRecyclerOptions<ItemUpload> options = new FirestoreRecyclerOptions.Builder<ItemUpload>().setQuery(query,ItemUpload.class).build();
+        //set options for adapter
+        FirestoreRecyclerOptions<ItemUpload> options = new FirestoreRecyclerOptions.Builder<ItemUpload>().setQuery(query,
+                ItemUpload.class).build();
 
+        //create adapter
         mAdapter = new myAdapter(options);
 
+        //create recycler view
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(mAdapter);
+
+        //ItemTouchHelper for gesture controls
         new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0,
                 ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
@@ -221,17 +247,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     int position = viewHolder.getAdapterPosition();
                     //store the deleted item incase user wants to undo delete
                     deletedItem = mAdapter.getItem(position);
-                    //delete item from recyclerview and FireStore
+                    //delete item from recyclerview and Firebase
                     mAdapter.deleteItem(position);
-
+                    //call method to give user the option to undo the delete
                     optionToUndoDelete();
 
 
-                } else if (direction == 8) {
-                    //user swipes right to edit
+                }
+                //user swipes right to edit
+                else if (direction == 8) {
+                    //send user to activity to edit item
                     Intent intent = new Intent(MainActivity.this, CreateOrEditActivity.class);
+                    //get position of the item selected to edit
                     int position = viewHolder.getAdapterPosition();
+                    //retrieve Firebase ID of item to edit using it's position
                     String itemFirebaseId = mAdapter.getItemFirebaseId(position);
+                    //send Firebase ID of item to edit to new activity
                     intent.putExtra(EXTRA_ITEM_FIREBASE_ID , itemFirebaseId);
                     startActivity(intent);
 
@@ -240,43 +271,53 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             }
             @Override
-            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder,
+                                    float dX, float dY, int actionState, boolean isCurrentlyActive) {
                 //create background colors and icons to display when swiping items using RecyclerViewSwipeDecorator library
                 new RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                        //add background color and icon for deleting
                         .addSwipeLeftBackgroundColor(MaterialColors.getColor(recyclerView,com.google.android.material.R.attr.colorError))
-                        .addSwipeLeftActionIcon(R.drawable.baseline_delete).setSwipeLeftActionIconTint(MaterialColors.getColor(recyclerView, com.google.android.material.R.attr.colorOnError))
-                        .addSwipeRightBackgroundColor(MaterialColors.getColor(recyclerView, com.google.android.material.R.attr.colorTertiary))
-                        .addSwipeRightActionIcon(R.drawable.baseline_edit).setSwipeRightActionIconTint(MaterialColors.getColor(recyclerView, com.google.android.material.R.attr.colorOnTertiary))
+                        .addSwipeLeftActionIcon(R.drawable.baseline_delete).setSwipeLeftActionIconTint(MaterialColors.getColor(recyclerView,
+                                com.google.android.material.R.attr.colorOnError))
+                        //add background color and icon for editing
+                        .addSwipeRightBackgroundColor(MaterialColors.getColor(recyclerView,
+                                com.google.android.material.R.attr.colorTertiary))
+                        .addSwipeRightActionIcon(R.drawable.baseline_edit).setSwipeRightActionIconTint(MaterialColors.getColor(recyclerView,
+                                com.google.android.material.R.attr.colorOnTertiary))
                         .create()
                         .decorate();
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
             }
         }).attachToRecyclerView(recyclerView);
 
+        //onclick listener for user selecting to delegate an item
         mAdapter.setOnItemDelegateClickListener(new myAdapter.OnItemClickListener() {
             @Override
             public void onItemDelegateClick(DocumentSnapshot documentSnapshot, int position) {
+                //call method to delegate item via SMS
                 sendSMS(documentSnapshot);
             }
         });
 
+        //set onclick listener for long click on item
         mAdapter.setOnItemLongClickListener(new myAdapter.OnItemLongClickListener(){
             @Override
             public void onItemLongClick(DocumentSnapshot documentSnapshot, int position) {
-                //change item's isBought boolean
+                //call method to change bool indicating whether item has been bought
                 changeIsBought(documentSnapshot, position);
             }
         });
     }
 
     private void optionToUndoDelete() {
+        //TODO: change color of snack bar -- Low priority
         RelativeLayout layout = findViewById(R.id.activity_main_layout);
         //create Snackbar to provide user feedback and give option to undo deletion
         Snackbar snackbar = Snackbar.make(layout, "Undo Delete", Snackbar.LENGTH_LONG)
                 .setAction("UNDO", new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        //undo the deletion
+                        //call method to undo the deletion if user clicks to Undo
                         undoDelete();
                     }
                 });
@@ -305,17 +346,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //method to delegate item through SMS
     private void sendSMS(DocumentSnapshot documentSnapshot){
-        //get title and link of item selected
+        //get details of item selected
         String itemTitle = documentSnapshot.getString("itemTitle");
         String itemLink = documentSnapshot.getString("itemLink");
         String itemDesc = documentSnapshot.getString("itemDesc");
         String itemPrice = documentSnapshot.getString("itemPrice");
 
-        //check item title and link are not null
-        if(itemTitle != null && itemLink != null){
+        //check item details are not null
+        if(itemTitle != null && itemLink != null && itemDesc != null && itemPrice != null){
+            //create delegate message to send via SMS
             String smsMessage = createSMSMessage(itemTitle, itemDesc, itemPrice, itemLink);
             //TODO: Fix bug as app crashes when returned to from sending SMS
-            //set up intent to send item as SMS
+            //set up intent to send delegate message as SMS
             Intent sendSMSIntent = new Intent();
             sendSMSIntent.setAction(Intent.ACTION_SEND);
             sendSMSIntent.putExtra(Intent.EXTRA_TEXT, smsMessage);
@@ -324,31 +366,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startActivity(sendSMSIntent);
         }
         else{
-            //user feedback to advise item must have a valid title and link
-            Toast.makeText(MainActivity.this, "Please select an item with a valid title and link.", Toast.LENGTH_LONG).show();
+            //user feedback to advise item must have a valid details
+            Toast.makeText(MainActivity.this, "Item does not have sufficient details to send", Toast.LENGTH_LONG).show();
         }
 
     }
 
     private void changeIsBought(DocumentSnapshot  documentSnapshot, int position){
-
+        //item from Firebase
         ItemUpload itemUpload = documentSnapshot.toObject(ItemUpload.class);
         if(itemUpload != null){
             //get original bool value
             boolean isItemBought = itemUpload.getItemBought();
+            //call method in adapter to change item's bool value
             mAdapter.changeIsBought(isItemBought, position);
             //original bool value was false therefore is being changed to true
             if(!isItemBought){
+                //user feedback
                 Toast.makeText(this, itemUpload.getItemTitle() + " Marked as Bought", Toast.LENGTH_SHORT).show();
             }
             //original bool value was true therefore being changed to false
             else{
+                //user feedback
                 Toast.makeText(this, itemUpload.getItemTitle() + " Changed to not Bought", Toast.LENGTH_SHORT).show();
             }
         }
         else{
             //user feedback incase itemUpload is null which means no item was clicked
-            Toast.makeText(MainActivity.this, "Please click an item to mark as bought.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "Please click and hold an item to mark as bought.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -356,11 +401,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void undoDelete() {
         //check if an item has been deleted in this session
         if(deletedItem == null){
+            //user feedback to advise nothing to undo
             Toast.makeText(this, "Unable to Undo. No items deleted in this session.", Toast.LENGTH_SHORT).show();
+            //return out of method
             return;
         }
 
-        //re-upload the item to FireStore
+        //add details from the stored item to a hashmap
         Map<String, Object> itemUpload = new HashMap<>();
         itemUpload.put("itemTitle", deletedItem.getItemTitle());
         itemUpload.put("itemDesc", deletedItem.getItemDesc());
@@ -370,19 +417,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         itemUpload.put("itemBought", deletedItem.getItemBought());
         itemUpload.put("imageDownloadUrl", deletedItem.getImageDownloadUrl());
 
+        //re-upload deleted item to firebase
         database.collection("itemUploads")
                 .add(itemUpload)
                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                     @Override
                     public void onSuccess(DocumentReference documentReference) {
+                        //user feedback to advise item deletion has been undone
                         Toast.makeText(MainActivity.this, "Undo Successful", Toast.LENGTH_SHORT).show();
-                        //set deleted item back to null so that it can not be add back again
+                        //set deleted item back to null so that it can not be added back again
                         deletedItem = null;
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
+                        //advise was unable to undo deletion
                         Toast.makeText(MainActivity.this, "Error Undoing Delete", Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -392,6 +442,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onResume() {
         super.onResume();
+        //adapter starts listening when activity resumes
+        mAdapter.startListening();
         //set sensor event listener if accelerometer is available
         if(isAccelerometerAvailable){
             sensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_DELAY_NORMAL);
@@ -401,6 +453,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onPause() {
         super.onPause();
+        //adapter stops listening when activity is paused
+        mAdapter.stopListening();
         //check if sensor was available
         if(isAccelerometerAvailable){
             //unregister the listener
@@ -410,11 +464,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        //
+        //store values of coordinates of device
         currentX = event.values[0];
         currentY = event.values[1];
         currentZ = event.values[2];
 
+        //check this is not the first time device has detected movement
         if(notFirstTime){
             //get difference between last and current X, Y, Z values
             xDifference = Math.abs(lastX - currentX);
@@ -425,20 +480,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if((xDifference > shakeThreshold && yDifference > shakeThreshold) ||
             (xDifference > shakeThreshold && zDifference > shakeThreshold) ||
                     (yDifference > shakeThreshold && zDifference > shakeThreshold)){
+                //give option to undo deletion
                 optionToUndoDelete();
             }
         }
 
+        //store coordinates to reference again when another shake is detected
         lastX = currentX;
         lastY = currentY;
         lastZ = currentZ;
 
+        //set bool to indicate this is not the first movements of the device
         notFirstTime = true;
 
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
+        //empty override as must implement this method
     }
 }

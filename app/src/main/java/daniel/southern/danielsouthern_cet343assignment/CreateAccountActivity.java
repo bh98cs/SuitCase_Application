@@ -67,6 +67,13 @@ public class CreateAccountActivity extends AppCompatActivity implements View.OnC
         //set onClick listeners for buttons
         loginBtn.setOnClickListener(this);
         createAccBtn.setOnClickListener(this);
+
+        //get intent that started activity
+        Intent intent = getIntent();
+        //store any text from the intent in a local variable
+        String email = intent.getStringExtra(CreateAccountActivity.EXTRA_EMAIL_ADDRESS);
+        //prepopulate email address for user if filled out in LoginActivity
+        userEmail.setText(email);
     }
 
     @Override
@@ -75,18 +82,27 @@ public class CreateAccountActivity extends AppCompatActivity implements View.OnC
         String email = userEmail.getText().toString().trim();
         //user clicks to create account
         if(v.getId() == R.id.button_CreateAccount){
-            //store contents of the two password boxes in variables
-            String password = userPassword.getText().toString();
-            String password2 = confirmPassword.getText().toString();
-            //check if the two passwords match (to make sure user hasn't miss typed)
-            if(passwordsMatch(password, password2)){
-                //create new user if passwords match
-                createNewUser(email, password);
+            //try-catch block for getting string values from user input
+            try{
+                //store contents of the two password boxes in variables
+                String password = userPassword.getText().toString();
+                String password2 = confirmPassword.getText().toString();
+                //check if the two passwords match (to make sure user hasn't miss typed)
+                if(passwordsMatch(password, password2)){
+                    //create new user if passwords match
+                    createNewUser(email, password);
+                }
+                else {
+                    //user feedback to advise two password boxes do not match
+                    Toast.makeText(this, "Passwords do not match.", Toast.LENGTH_LONG).show();
+                }
             }
-            else {
-                //user feedback to advise two password boxes do not match
-                Toast.makeText(this, "Passwords do not match.", Toast.LENGTH_LONG).show();
+            //catch exception if null or empty string is provided
+            catch(IllegalArgumentException e){
+                //user feedback to advise all fields must be provided.
+                Toast.makeText(this, "Please provide an email address and two matching passwords.", Toast.LENGTH_SHORT).show();
             }
+
         }
         //login button has been clicked
         else if (v.getId() == R.id.button_Login) {

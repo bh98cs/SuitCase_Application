@@ -14,14 +14,22 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
+    //tag for logs for this activity
     public static final String TAG = "LoginActivity";
+    //for intenting email address to another activity
+    public static final String EXTRA_EMAIL_ADDRESS = "daniel.southern.danielsouthern_cet343assignment.EXTRA_EMAIL_ADDRESS";
+
+    //declare instance of firebase auth
     private FirebaseAuth mAuth;
+
+    //declare functional views on Activity
     private Button loginBtn;
     private Button createAccBtn;
     private EditText userEmail;
@@ -43,20 +51,23 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         //hide title as custom one created in layout file
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
-        //initialize homepage icon
+        //initialize homepage icon and set onclick listener
         homepageIcon = findViewById(R.id.imageView_homepageIcon);
         homepageIcon.setOnClickListener(this);
 
-        //Initialize widgets
+        //Initialize views
         loginBtn = findViewById(R.id.button_Login);
         createAccBtn = findViewById(R.id.button_CreateAccount);
         userEmail = findViewById(R.id.editText_UserEmail);
         userPassword = findViewById(R.id.editText_Password);
 
+        //set onclick listener for buttons
         loginBtn.setOnClickListener(this);
         createAccBtn.setOnClickListener(this);
+
         //get intent that started activity
         Intent intent = getIntent();
+        //store any text from the intent in a local variable
         String email = intent.getStringExtra(CreateAccountActivity.EXTRA_EMAIL_ADDRESS);
         //prepopulate email address for user if filled out in CreateAccountActivity
         userEmail.setText(email);
@@ -64,16 +75,33 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     @Override
     public void onClick(View v) {
+        //login button clicked
         if(v.getId() == R.id.button_Login){
-            //check credentials and login user
-            Log.i(TAG, "button_Login clicked.");
+            //try-catch block for getting string values from user input
+            try{
+                //store user input in string variables
+                String email = userEmail.getText().toString().trim();
+                String password = userPassword.getText().toString().trim();
+
+                //call method to sign in user with email and password given
+                signIn(email, password);
+            }
+            //catch exception if null or empty string is provided
+            catch(IllegalArgumentException e){
+                //user feedback to advise both fields need to be given
+                Toast.makeText(LoginActivity.this, "Please provide an email address and password.", Toast.LENGTH_SHORT).show();
+            }
+
+
+        }
+        //create account button clicked
+        else if (v.getId() == R.id.button_CreateAccount) {
+            //get contents of email input box
             String email = userEmail.getText().toString().trim();
-            String password = userPassword.getText().toString().trim();
-            signIn(email, password);
-        } else if (v.getId() == R.id.button_CreateAccount) {
             //send user to create account page
             Intent intent = new Intent(this, CreateAccountActivity.class);
-            //TODO: send any text from editText_UserEmail to CreateAccount page and prepopulate
+            //send contents of email input to CreateAccountActivity
+            intent.putExtra(EXTRA_EMAIL_ADDRESS, email);
             startActivity(intent);
         } else if (v.getId() == R.id.imageView_homepageIcon) {
             //send user to homepage
@@ -83,14 +111,17 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void signIn(String email, String password) {
+
+        //sign user in with their email and password
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
+                        //check if login was successful
                         if(task.isSuccessful()){
                             //sign in successful
                             Log.d(TAG, "signInWithEmail:success");
-                            FirebaseUser user = mAuth.getCurrentUser();
+                            //send user to their main page
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                             startActivity(intent);
                         }else{
@@ -99,6 +130,15 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                             Toast.makeText(LoginActivity.this, "Email or Password is incorrect.",
                                     Toast.LENGTH_LONG).show();
                         }
+                    }
+                })
+                .addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        //if attempt to sign in failed
+                        Log.e(TAG, "Unable to attempt sign in.", e);
+                        //user feedback
+                        Toast.makeText(LoginActivity.this, "Unable to Sign in.", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
