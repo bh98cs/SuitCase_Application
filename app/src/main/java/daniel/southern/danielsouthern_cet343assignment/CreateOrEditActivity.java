@@ -193,8 +193,17 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
     public void onClick(View v) {
         //save button has been clicked
         if(v.getId() == R.id.button_save){
-            //call method to save item details to database
-            saveItem();
+
+            //ensure user has provided a title and price as a minimum
+            if(!productTitle.getText().toString().trim().equals("") && !productPrice.getText().toString().trim().equals("")
+            && !productTitle.getText().toString().trim().equals(null) && !productPrice.getText().toString().trim().equals(null)){
+                //call method to save item details to database
+                saveItem();
+            }
+            else{
+                //user feedback to advise of required fields
+                Toast.makeText(this, "Please provide a title and price for the item.", Toast.LENGTH_SHORT).show();
+            }
 
         }
         //cancel button clicked
