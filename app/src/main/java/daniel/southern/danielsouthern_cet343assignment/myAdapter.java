@@ -59,13 +59,13 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
         //if item is marked as being bought update color
         if(model.getItemBought()){
             //change background color of item's card to indicate it has been bought
-            holder.itemBackground.setBackgroundColor(MaterialColors.getColor(holder.itemBackground, com.google.android.material.R.attr.colorTertiary));
+            holder.itemBackground.setBackgroundColor(MaterialColors.getColor(holder.itemBackground, com.google.android.material.R.attr.colorSurfaceVariant));
             //update text color on the card to provide sufficient contrast with new background color
-            holder.textViewTitle.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnTertiary));
-            holder.textViewDesc.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnTertiary));
-            holder.textViewLink.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnTertiary));
-            holder.textViewPrice.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnTertiary));
-            holder.delegateItem.setColorFilter(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnTertiary));
+            holder.textViewTitle.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnSurfaceVariant));
+            holder.textViewDesc.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnSurfaceVariant));
+            holder.textViewLink.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnSurfaceVariant));
+            holder.textViewPrice.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnSurfaceVariant));
+            holder.delegateItem.setColorFilter(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnSurfaceVariant));
         }
         //load the saved image for the item using picasso library
         Picasso.get()

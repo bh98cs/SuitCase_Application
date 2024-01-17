@@ -281,9 +281,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 com.google.android.material.R.attr.colorOnError))
                         //add background color and icon for editing
                         .addSwipeRightBackgroundColor(MaterialColors.getColor(recyclerView,
-                                com.google.android.material.R.attr.colorTertiary))
+                                com.google.android.material.R.attr.colorPrimary))
                         .addSwipeRightActionIcon(R.drawable.baseline_edit).setSwipeRightActionIconTint(MaterialColors.getColor(recyclerView,
-                                com.google.android.material.R.attr.colorOnTertiary))
+                                com.google.android.material.R.attr.colorOnPrimary))
                         .create()
                         .decorate();
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
@@ -310,7 +310,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void optionToUndoDelete() {
-        //TODO: change color of snack bar -- Low priority
         RelativeLayout layout = findViewById(R.id.activity_main_layout);
         //create Snackbar to provide user feedback and give option to undo deletion
         Snackbar snackbar = Snackbar.make(layout, "Undo Delete", Snackbar.LENGTH_LONG)

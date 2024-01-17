@@ -17,19 +17,26 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_marginStart="16dp"
-            android:layout_toEndOf="@id/imageView_suitcaseIcon"
+            android:layout_toEndOf="@id/suitcase_icon"
             android:text="Suitcase"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:textSize="34sp"
             android:textColor="?attr/colorOnPrimaryContainer"/>
 
-        <ImageView
-            android:id="@+id/imageView_suitcaseIcon"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_centerVertical="true"
-            android:src="@drawable/suitcase_logo_icon"
-            app:tint="?attr/colorOnPrimaryContainer" />
+        <androidx.cardview.widget.CardView
+            android:id="@+id/suitcase_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="250dp"
+            >
+            <ImageView
+                android:id="@+id/imageView_suitcaseIcon"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_centerVertical="true"
+                android:src="@mipmap/ic_launcher"
+                />
+        </androidx.cardview.widget.CardView>
 
         <ImageView
             android:id="@+id/imageView_homepageIcon"

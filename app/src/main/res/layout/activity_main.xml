@@ -32,9 +32,9 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         android:clickable="true"
-        android:backgroundTint="?attr/colorTertiaryContainer"
+        android:backgroundTint="?attr/colorPrimaryInverse"
         app:srcCompat="@drawable/baseline_add_24"
-        app:tint="?attr/colorOnTertiaryContainer"
+        app:tint="?attr/colorOnPrimaryContainer"
         />
 
 </RelativeLayout>
