@@ -13,7 +13,7 @@
         android:layout_marginTop="64dp"
         android:layout_marginEnd="60dp"
         android:backgroundTint="?attr/colorSurface"
-        android:text="Cancel"
+        android:text="@string/cancel"
         android:textColor="?attr/colorPrimary"
         android:theme="@style/ButtonBorder"
         app:layout_constraintEnd_toEndOf="parent"
@@ -36,7 +36,7 @@
         android:layout_marginStart="60dp"
         android:layout_marginTop="28dp"
         android:ems="10"
-        android:hint="Product Title"
+        android:hint="@string/product_title"
         android:inputType="text"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView_productImage" />
@@ -50,7 +50,7 @@
         android:layout_marginTop="28dp"
         android:ems="10"
         android:gravity="start|top"
-        android:hint="Description"
+        android:hint="@string/description"
         android:inputType="textMultiLine"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editText_productPrice" />
@@ -62,7 +62,7 @@
         android:layout_marginStart="60dp"
         android:layout_marginTop="28dp"
         android:ems="10"
-        android:hint="Product Link"
+        android:hint="@string/product_link"
         android:inputType="text"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editText_productDesc" />
@@ -73,7 +73,7 @@
         android:layout_height="64dp"
         android:layout_marginStart="60dp"
         android:layout_marginTop="64dp"
-        android:text="Save"
+        android:text="@string/save"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editText_productLink" />
 
@@ -83,7 +83,7 @@
         android:layout_height="64dp"
         android:layout_marginEnd="60dp"
         android:layout_marginBottom="32dp"
-        android:text="Select Image"
+        android:text="@string/select_image"
         android:textColor="?attr/colorOnSecondaryContainer"
         android:backgroundTint="?attr/colorSecondaryContainer"
         app:layout_constraintBottom_toTopOf="@+id/editText_productTitle"
@@ -95,7 +95,7 @@
         android:layout_height="48dp"
         android:layout_marginTop="28dp"
         android:ems="10"
-        android:hint="Price"
+        android:hint="@string/price"
         android:inputType="number"
         app:layout_constraintStart_toEndOf="@+id/textView_productPrice"
         app:layout_constraintTop_toBottomOf="@+id/editText_productTitle" />
@@ -106,7 +106,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="60dp"
         android:layout_marginTop="36dp"
-        android:text="Product Price: £"
+        android:text="@string/product_price"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         app:layout_constraintBaseline_toBaselineOf="@+id/editText_productPrice"
         app:layout_constraintStart_toStartOf="parent"

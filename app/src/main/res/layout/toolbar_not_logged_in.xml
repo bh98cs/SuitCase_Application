@@ -18,7 +18,7 @@
             android:layout_centerVertical="true"
             android:layout_marginStart="16dp"
             android:layout_toEndOf="@id/suitcase_icon"
-            android:text="Suitcase"
+            android:text="@string/suitcase"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:textSize="34sp"
             android:textColor="?attr/colorOnPrimaryContainer"/>

@@ -17,12 +17,8 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
 public class CreateAccountActivity extends AppCompatActivity implements View.OnClickListener{
-    //TODO: follow Coding in Flow's tutorial for validating email and password
-    //TODO: Follow coding in Flow's TextWatcher tutorial for disabling buttons
 
     //constant variable for sending contents of email address field to LoginActivity
     public static final String EXTRA_EMAIL_ADDRESS = "daniel.southern.danielsouthern_cet343assignment.EXTRA_EMAIL_ADDRESS";
@@ -136,7 +132,8 @@ public class CreateAccountActivity extends AppCompatActivity implements View.OnC
                         }else {
                             //sign up fails print error in the log
                             Log.w(TAG, "createUserWithEmail:failure", task.getException());
-                            Toast.makeText(CreateAccountActivity.this, "Authentication failed.",
+                            //user feedback to advise could not create account
+                            Toast.makeText(CreateAccountActivity.this, "Unable to Create Account.",
                                     Toast.LENGTH_LONG).show();
                         }
                     }

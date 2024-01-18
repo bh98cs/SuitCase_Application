@@ -1,10 +1,8 @@
 package daniel.southern.danielsouthern_cet343assignment;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -12,7 +10,6 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -21,7 +18,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -42,9 +38,7 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
@@ -66,20 +60,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private float currentX, currentY, currentZ, lastX, lastY, lastZ;
     private float xDifference, yDifference, zDifference;
     //variable to determine whether device has been shaken sufficiently
-    private float shakeThreshold = 3f;
+    private final float shakeThreshold = 3f;
     //declare adapter for RecyclerView
     private myAdapter mAdapter;
     //get instance of FireStore to access saved images
-    private FirebaseFirestore database = FirebaseFirestore.getInstance();
+    private final FirebaseFirestore database = FirebaseFirestore.getInstance();
     //get collection reference for all itemUploads
-    private CollectionReference announcementRef = database.collection("itemUploads");
+    private final CollectionReference announcementRef = database.collection("itemUploads");
     //declare instance of Firebase auth
     private FirebaseAuth mAuth;
     //instance of Firebase User to retrieve details of current user
     private FirebaseUser currentUser;
     // Create a Cloud Storage reference from the app
-    private FirebaseStorage storage = FirebaseStorage.getInstance();
-    private StorageReference storageRef = storage.getReference();
+    private final FirebaseStorage storage = FirebaseStorage.getInstance();
+    private final StorageReference storageRef = storage.getReference();
 
     //initialise FAB
     private FloatingActionButton createItemUpload;
@@ -275,11 +269,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     float dX, float dY, int actionState, boolean isCurrentlyActive) {
                 //create background colors and icons to display when swiping items using RecyclerViewSwipeDecorator library
                 new RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
-                        //add background color and icon for deleting
+                        //add background color and icon for deleting (swipe left)
                         .addSwipeLeftBackgroundColor(MaterialColors.getColor(recyclerView,com.google.android.material.R.attr.colorError))
                         .addSwipeLeftActionIcon(R.drawable.baseline_delete).setSwipeLeftActionIconTint(MaterialColors.getColor(recyclerView,
                                 com.google.android.material.R.attr.colorOnError))
-                        //add background color and icon for editing
+                        //add background color and icon for editing (swipe right)
                         .addSwipeRightBackgroundColor(MaterialColors.getColor(recyclerView,
                                 com.google.android.material.R.attr.colorPrimary))
                         .addSwipeRightActionIcon(R.drawable.baseline_edit).setSwipeRightActionIconTint(MaterialColors.getColor(recyclerView,
@@ -327,7 +321,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //variable to store the template message in
         String message;
         //check if link saved on Firebase document is empty
-        if(itemLink != ""){
+        if(!itemLink.equals("")){
             //create SMS template message containing link
             message = "Hi!\n\nHere's the link to purchase the " + itemTitle + " needed for our " +
                     "holiday.\n\n" + itemLink + "\n\nProduct Description: " + itemDesc + "\n\nProduct Price: £" + itemPrice
