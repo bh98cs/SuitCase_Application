@@ -314,7 +314,6 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
 
     }
 
-    //TODO: clean up this code as can separate saving image into it's own method
     private void saveItem() {
         //save image first to retrieve download Url
         if(productImageUri != null){
@@ -329,7 +328,6 @@ public class CreateOrEditActivity extends AppCompatActivity implements View.OnCl
                             //Successfully saved image to FireBase
                             Log.d(TAG, "onSuccess: Image uploaded");
                             //retrieve download Url for image to save with item details in FireStore DB
-                            //TODO: add spinner for user feedback when saving image
                             fileReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                 @Override
                                 public void onSuccess(Uri uri) {

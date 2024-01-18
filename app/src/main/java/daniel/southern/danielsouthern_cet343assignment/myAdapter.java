@@ -41,37 +41,39 @@ public class myAdapter extends FirestoreRecyclerAdapter<ItemUpload, myAdapter.It
     @NonNull
     @Override
     public ItemUploadHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.data_item, parent, false);
-        return new ItemUploadHolder(v);
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.data_item, parent, false);
+            return new ItemUploadHolder(v);
     }
 
     @Override
     protected void onBindViewHolder(@NonNull ItemUploadHolder holder, int position, @NonNull ItemUpload model) {
-        //set text for items title using ItemUpload title getter
-        holder.textViewTitle.setText(model.getItemTitle());
-        //set text for items description using ItemUpload description getter
-        holder.textViewDesc.setText(model.getItemDesc());
-        //set text for items link using ItemUpload link getter
-        holder.textViewLink.setText(model.getItemLink());
-        //set text for items price using ItemUpload price getter
-        holder.textViewPrice.setText("£"+model.getItemPrice());
-        //if item is marked as being bought update color
-        if(model.getItemBought()){
-            //change background color of item's card to indicate it has been bought
-            holder.itemBackground.setBackgroundColor(MaterialColors.getColor(holder.itemBackground, com.google.android.material.R.attr.colorSurfaceVariant));
-            //update text color on the card to provide sufficient contrast with new background color
-            holder.textViewTitle.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnSurfaceVariant));
-            holder.textViewDesc.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnSurfaceVariant));
-            holder.textViewLink.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnSurfaceVariant));
-            holder.textViewPrice.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnSurfaceVariant));
-            holder.delegateItem.setColorFilter(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnSurfaceVariant));
-        }
-        //load the saved image for the item using picasso library
-        Picasso.get()
-                .load(model.getImageDownloadUrl())
-                .fit()
-                .centerCrop()
-                .into(holder.imageViewImage);
+
+            //set text for items title using ItemUpload title getter
+            holder.textViewTitle.setText(model.getItemTitle());
+            //set text for items description using ItemUpload description getter
+            holder.textViewDesc.setText(model.getItemDesc());
+            //set text for items link using ItemUpload link getter
+            holder.textViewLink.setText(model.getItemLink());
+            //set text for items price using ItemUpload price getter
+            holder.textViewPrice.setText("£"+model.getItemPrice());
+            //if item is marked as being bought update color
+            if(model.getItemBought()){
+                //change background color of item's card to indicate it has been bought
+                holder.itemBackground.setBackgroundColor(MaterialColors.getColor(holder.itemBackground, com.google.android.material.R.attr.colorSurfaceVariant));
+                //update text color on the card to provide sufficient contrast with new background color
+                holder.textViewTitle.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnSurfaceVariant));
+                holder.textViewDesc.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnSurfaceVariant));
+                holder.textViewLink.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnSurfaceVariant));
+                holder.textViewPrice.setTextColor(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnSurfaceVariant));
+                holder.delegateItem.setColorFilter(MaterialColors.getColor(holder.textViewTitle, com.google.android.material.R.attr.colorOnSurfaceVariant));
+            }
+            //load the saved image for the item using picasso library
+            Picasso.get()
+                    .load(model.getImageDownloadUrl())
+                    .fit()
+                    .centerCrop()
+                    .into(holder.imageViewImage);
+
     }
 
     public void deleteItem(int position){

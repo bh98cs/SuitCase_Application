@@ -220,7 +220,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //create recycler view
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setLayoutManager(new CustomLinearLayoutManager(this));
         recyclerView.setAdapter(mAdapter);
 
         //ItemTouchHelper for gesture controls
@@ -349,7 +349,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(itemTitle != null && itemLink != null && itemDesc != null && itemPrice != null){
             //create delegate message to send via SMS
             String smsMessage = createSMSMessage(itemTitle, itemDesc, itemPrice, itemLink);
-            //TODO: Fix bug as app crashes when returned to from sending SMS
             //set up intent to send delegate message as SMS
             Intent sendSMSIntent = new Intent();
             sendSMSIntent.setAction(Intent.ACTION_SEND);
